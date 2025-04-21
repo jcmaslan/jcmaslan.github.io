@@ -2,12 +2,10 @@
 # Colin Maslan
 
 <img src="/images/earth-line.svg" alt="Website icon" width="16"> [colin.maslan.com](https://colin.maslan.com/)
-<br><img src="/images/mail-line.svg" alt="Email icon" width="16"> colin@maslan.com
 
 # Mimi Maslan
 
 <img src="/images/earth-line.svg" alt="Website icon" width="16"> [mimi.maslan.com](https://mimi.maslan.com/)
-<br><img src="/images/mail-line.svg" alt="Email icon" width="16"> mimi@maslan.com
 
 # Carter Maslan
 
