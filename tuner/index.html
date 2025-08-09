@@ -69,7 +69,7 @@
             top: 0;
             width: 60px;
             height: 100%;
-            background: #b0b0b0;
+            background: #F8F8FF;
             border-radius: 12px 0 0 12px;
             box-shadow: -4px 0 16px rgba(0,0,0,0.2);
         }
@@ -191,6 +191,28 @@
             flex-direction: column;
             justify-content: center;
             color: #ffffff;
+            position: relative;
+        }
+
+        .tuning-meter {
+            position: absolute;
+            left: -30px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 40px;
+            border: 2px solid #4a4a4a;
+            border-radius: 4px;
+            background: #2a2a2a;
+            overflow: hidden;
+        }
+
+        .tuning-meter-fill {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(to top, #ff4444, #ffaa44, #44ff44, #ffaa44, #ff4444);
+            transition: all 0.2s ease;
         }
 
         .current-frequency {
@@ -367,6 +389,9 @@
                                 :style="{ height: getStringHeight(index) + 'px' }"
                             ></div>
                             <div class="frequency-display">
+                                <div class="tuning-meter" v-if="activeString === index && currentFrequency">
+                                    <div class="tuning-meter-fill" :style="getMeterFillStyle(index)"></div>
+                                </div>
                                 <div>{{ string.targetFreq.toFixed(1) }}Hz</div>
                                 <div class="current-frequency">
                                     <span v-if="currentFrequency && activeString === index">
@@ -413,6 +438,6 @@
         </div>
     </div>
 
-    <script>const{createApp:createApp}=Vue;createApp({data:()=>({strings:[{note:"E",targetFreq:329.63,octave:4},{note:"B",targetFreq:246.94,octave:3},{note:"G",targetFreq:196,octave:3},{note:"D",targetFreq:146.83,octave:3},{note:"A",targetFreq:110,octave:2},{note:"E",targetFreq:82.41,octave:2}],isListening:!1,microphoneSupported:!1,audioContext:null,analyser:null,microphone:null,dataArray:null,activeString:null,currentFrequency:null,tuningDirection:null,error:null,perfectStartTime:null,lastPluckTime:0}),async mounted(){await this.checkMicrophoneSupport()},methods:{async checkMicrophoneSupport(){try{navigator.mediaDevices&&navigator.mediaDevices.getUserMedia?this.microphoneSupported=!0:this.error="Microphone not supported"}catch(t){this.error="Error checking microphone support"}},async requestMicrophonePermission(){try{(await navigator.mediaDevices.getUserMedia({audio:!0})).getTracks().forEach(t=>t.stop()),this.microphoneSupported=!0,this.error=null}catch(t){this.error="Microphone permission denied"}},async toggleListening(){this.isListening?this.stopListening():await this.startListening()},async startListening(){try{this.error=null;const t=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:!1,noiseSuppression:!1,autoGainControl:!1}});this.audioContext=new(window.AudioContext||window.webkitAudioContext),this.analyser=this.audioContext.createAnalyser(),this.microphone=this.audioContext.createMediaStreamSource(t),this.analyser.fftSize=4096,this.analyser.smoothingTimeConstant=.3,this.dataArray=new Float32Array(this.analyser.fftSize),this.microphone.connect(this.analyser),this.isListening=!0,this.detectPitch()}catch(t){this.error="Failed to access microphone: "+t.message}},stopListening(){this.isListening=!1,this.activeString=null,this.currentFrequency=null,this.tuningDirection=null,this.microphone&&(this.microphone.disconnect(),this.microphone=null),this.audioContext&&(this.audioContext.close(),this.audioContext=null)},detectPitch(){if(!this.isListening)return;this.analyser.getFloatTimeDomainData(this.dataArray);const t=this.autoCorrelate(this.dataArray,this.audioContext.sampleRate);t>0?(this.currentFrequency=t,this.findClosestString(t)):(this.activeString=null,this.tuningDirection=null),requestAnimationFrame(()=>this.detectPitch())},autoCorrelate(t,e){const i=t.length;if(Math.sqrt(t.reduce((t,e)=>t+e*e,0)/i)<.01)return-1;let n=0,r=i-1;for(let e=0;e<i/2;e++)if(Math.abs(t[e])<.2){n=e;break}for(let e=1;e<i/2;e++)if(Math.abs(t[i-e])<.2){r=i-e;break}const s=(t=t.slice(n,r)).length,a=new Array(s).fill(0);for(let e=0;e<s;e++)for(let i=0;i<s-e;i++)a[e]=a[e]+t[i]*t[i+e];let o=0;for(;a[o]>a[o+1];)o++;let c=-1,h=-1;for(let t=o;t<s;t++)a[t]>c&&(c=a[t],h=t);let u=h;const l=a[u-1],g=a[u],p=a[u+1],d=(l-2*g+p)/2;return d&&(u-=(p-l)/2/(2*d)),e/u},findClosestString(t){let e=0,i=Math.abs(t-this.strings[0].targetFreq);for(let n=1;n<this.strings.length;n++){const r=Math.abs(t-this.strings[n].targetFreq);r<i&&(i=r,e=n)}this.activeString=e;const n=t-this.strings[e].targetFreq;Math.abs(n)<3?(this.tuningDirection="perfect",this.handlePerfectTuning()):(this.tuningDirection=n>0?"down":"up",this.perfectStartTime=null)},handlePerfectTuning(){const t=Date.now();null===this.perfectStartTime?this.perfectStartTime=t:t-this.perfectStartTime>=250&&t-this.lastPluckTime>2e3&&(this.playPluckSound(),this.lastPluckTime=t,this.perfectStartTime=t)},playPluckSound(){const t=new(window.AudioContext||window.webkitAudioContext),e=t.createOscillator(),i=t.createGain();e.connect(i),i.connect(t.destination);const n=4*this.strings[this.activeString].targetFreq;e.frequency.setValueAtTime(n,t.currentTime),i.gain.setValueAtTime(0,t.currentTime),i.gain.linearRampToValueAtTime(.3,t.currentTime+.01),i.gain.exponentialRampToValueAtTime(.01,t.currentTime+.15),e.type="triangle",e.start(t.currentTime),e.stop(t.currentTime+.15),setTimeout(()=>{t.close()},200)},getTuningSymbol(){switch(this.tuningDirection){case"up":return"↗";case"down":return"↘";case"perfect":return"✓";default:return""}},getTuningText(){switch(this.tuningDirection){case"up":return"Tune Up";case"down":return"Tune Down";case"perfect":return"Perfect!";default:return""}},getStringHeight:t=>[3,4,5,6,7,8][t],getStatusText(){return this.error?this.error:this.microphoneSupported?this.isListening?"Listening... Pluck a string":'Click "Start Tuning" to begin':"Microphone not supported"}}}).mount("#app");</script>
+    <script>const{createApp:createApp}=Vue;createApp({data:()=>({strings:[{note:"E",targetFreq:329.63,octave:4},{note:"B",targetFreq:246.94,octave:3},{note:"G",targetFreq:196,octave:3},{note:"D",targetFreq:146.83,octave:3},{note:"A",targetFreq:110,octave:2},{note:"E",targetFreq:82.41,octave:2}],isListening:!1,microphoneSupported:!1,audioContext:null,analyser:null,microphone:null,dataArray:null,activeString:null,currentFrequency:null,tuningDirection:null,error:null,perfectStartTime:null,lastPluckTime:0}),async mounted(){await this.checkMicrophoneSupport()},methods:{async checkMicrophoneSupport(){try{navigator.mediaDevices&&navigator.mediaDevices.getUserMedia?this.microphoneSupported=!0:this.error="Microphone not supported"}catch(t){this.error="Error checking microphone support"}},async requestMicrophonePermission(){try{(await navigator.mediaDevices.getUserMedia({audio:!0})).getTracks().forEach(t=>t.stop()),this.microphoneSupported=!0,this.error=null}catch(t){this.error="Microphone permission denied"}},async toggleListening(){this.isListening?this.stopListening():await this.startListening()},async startListening(){try{this.error=null;const t=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:!1,noiseSuppression:!1,autoGainControl:!1}});this.audioContext=new(window.AudioContext||window.webkitAudioContext),this.analyser=this.audioContext.createAnalyser(),this.microphone=this.audioContext.createMediaStreamSource(t),this.analyser.fftSize=4096,this.analyser.smoothingTimeConstant=.3,this.dataArray=new Float32Array(this.analyser.fftSize),this.microphone.connect(this.analyser),this.isListening=!0,this.detectPitch()}catch(t){this.error="Failed to access microphone: "+t.message}},stopListening(){this.isListening=!1,this.activeString=null,this.currentFrequency=null,this.tuningDirection=null,this.microphone&&(this.microphone.disconnect(),this.microphone=null),this.audioContext&&(this.audioContext.close(),this.audioContext=null)},detectPitch(){if(!this.isListening)return;this.analyser.getFloatTimeDomainData(this.dataArray);const t=this.autoCorrelate(this.dataArray,this.audioContext.sampleRate);t>0?(this.currentFrequency=t,this.findClosestString(t)):(this.activeString=null,this.tuningDirection=null),requestAnimationFrame(()=>this.detectPitch())},autoCorrelate(t,e){const i=t.length;if(Math.sqrt(t.reduce((t,e)=>t+e*e,0)/i)<.01)return-1;let n=0,r=i-1;for(let e=0;e<i/2;e++)if(Math.abs(t[e])<.2){n=e;break}for(let e=1;e<i/2;e++)if(Math.abs(t[i-e])<.2){r=i-e;break}const s=(t=t.slice(n,r)).length,o=new Array(s).fill(0);for(let e=0;e<s;e++)for(let i=0;i<s-e;i++)o[e]=o[e]+t[i]*t[i+e];let a=0;for(;o[a]>o[a+1];)a++;let c=-1,h=-1;for(let t=a;t<s;t++)o[t]>c&&(c=o[t],h=t);let u=h;const l=o[u-1],g=o[u],p=o[u+1],d=(l-2*g+p)/2;return d&&(u-=(p-l)/2/(2*d)),e/u},findClosestString(t){let e=0,i=Math.abs(t-this.strings[0].targetFreq);for(let n=1;n<this.strings.length;n++){const r=Math.abs(t-this.strings[n].targetFreq);r<i&&(i=r,e=n)}this.activeString=e;const n=t-this.strings[e].targetFreq;Math.abs(n)<3?(this.tuningDirection="perfect",this.handlePerfectTuning()):(this.tuningDirection=n>0?"down":"up",this.perfectStartTime=null)},handlePerfectTuning(){const t=Date.now();null===this.perfectStartTime?this.perfectStartTime=t:t-this.perfectStartTime>=250&&t-this.lastPluckTime>2e3&&(this.playPluckSound(),this.lastPluckTime=t,this.perfectStartTime=t)},playPluckSound(){const t=new(window.AudioContext||window.webkitAudioContext),e=t.createOscillator(),i=t.createGain();e.connect(i),i.connect(t.destination);const n=4*this.strings[this.activeString].targetFreq;e.frequency.setValueAtTime(n,t.currentTime),i.gain.setValueAtTime(0,t.currentTime),i.gain.linearRampToValueAtTime(.3,t.currentTime+.01),i.gain.exponentialRampToValueAtTime(.01,t.currentTime+.15),e.type="triangle",e.start(t.currentTime),e.stop(t.currentTime+.15),setTimeout(()=>{t.close()},200)},getTuningSymbol(){switch(this.tuningDirection){case"up":return"↗";case"down":return"↘";case"perfect":return"✓";default:return""}},getTuningText(){switch(this.tuningDirection){case"up":return"Tune Up";case"down":return"Tune Down";case"perfect":return"Perfect!";default:return""}},getStringHeight:t=>[3,4,5,6,7,8][t],getMeterFillStyle(t){if(!this.currentFrequency||this.activeString!==t)return{height:"0%",bottom:"50%"};const e=this.strings[t].targetFreq,i=this.currentFrequency-e,n=Math.max(-2,Math.min(2,i));if(Math.abs(n)<.1)return{height:"0%",bottom:"50%"};if(n>0){return{height:`${n/2*50}%`,bottom:"50%"}}{const t=Math.abs(n)/2*50;return{height:`${t}%`,bottom:50-t+"%"}}},getStatusText(){return this.error?this.error:this.microphoneSupported?this.isListening?"Listening... Pluck a string":'Click "Start Tuning" to begin':"Microphone not supported"}}}).mount("#app");</script>
 </body>
 </html>
