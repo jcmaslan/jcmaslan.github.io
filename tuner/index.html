@@ -43,13 +43,6 @@
             padding: 20px;
         }
 
-        h1 {
-            margin-bottom: 40px;
-            color: #e0e0e0;
-            font-weight: 300;
-            font-size: 2.5rem;
-            letter-spacing: 1px;
-        }
 
         .guitar-neck {
             background: #2a2a2a;
@@ -72,7 +65,24 @@
             background: #F8F8FF;
             border-radius: 12px 0 0 12px;
             box-shadow: -4px 0 16px rgba(0,0,0,0.2);
+            z-index: 5;
         }
+
+        .frets {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        .frets .fret {
+            pointer-events: auto;
+            z-index: 25;
+        }
+
 
 
         .strings-container {
@@ -143,6 +153,7 @@
             height: 100%;
             position: relative;
             z-index: 1;
+            margin-left: -36px;
         }
 
         .string-note {
@@ -151,6 +162,98 @@
             width: 50px;
             color: #ffffff;
             text-align: center;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+            border-radius: 8px;
+            padding: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        .string-note:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.1);
+        }
+
+        .string-note:active {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(0.95);
+        }
+
+        .string-note.playing {
+            background: rgba(0, 255, 136, 0.2);
+            animation: note-playing 0.5s infinite alternate;
+        }
+
+        .string-note.dragging {
+            opacity: 0.5;
+            transform: rotate(3deg);
+        }
+
+        @keyframes note-playing {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+
+        .fret-line {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, transparent 0%, #666 10%, #666 90%, transparent 100%);
+            opacity: 0.6;
+            margin-left: -1px;
+            z-index: 10;
+        }
+        
+        .fret {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            height: 100%;
+            width: 40px;
+            background: transparent;
+            margin-left: -19px;
+            transition: all 0.3s ease;
+        }
+
+        .fret.drop-target {
+            width: 60px;
+            background: rgba(0, 255, 136, 0.3);
+            opacity: 1;
+            margin-left: -29px;
+            border-radius: 8px;
+        }
+
+        .open-position-drop {
+            position: absolute;
+            left: -40px;
+            top: 0;
+            bottom: 0;
+            width: 40px;
+            opacity: 0.2;
+            background: transparent;
+            transition: all 0.3s ease;
+            pointer-events: auto;
+            z-index: 25;
+        }
+
+        .open-position-drop.drop-target {
+            background: rgba(0, 255, 136, 0.3);
+            opacity: 1;
+            border-radius: 4px;
+        }
+
+        .fret-position-indicator {
+            position: absolute;
+            bottom: -30px;
+            left: -36px;
+            font-size: 12px;
+            color: #9a9a9a;
+            font-weight: 500;
+            text-align: center;
+            width: 80px;
+            user-select: none;
         }
 
         .string-visual {
@@ -374,15 +477,66 @@
 <body>
     <div id="app">
         <div class="guitar-tuner">
-            <h1>Guitar Tuner</h1>
-            
             <div class="guitar-neck">
+                <!-- Open position drop zone -->
+                <div class="open-position-drop" 
+                     :class="{ 'drop-target': isDragging }"
+                     @dragover="handleDragOver($event, 0)"
+                     @dragenter="handleDragEnter"
+                     @dragleave="handleDragLeave"
+                     @drop="dropOnFret($event, 0)">
+                </div>
+                
+                <!-- Visual fret lines -->
+                <div class="fret-line" style="left: 25%;"></div>
+                <div class="fret-line" style="left: 40%;"></div>
+                <div class="fret-line" style="left: 55%;"></div>
+                <div class="fret-line" style="left: 70%;"></div>
+                
+                <div class="frets">
+                    <div class="fret" 
+                         :class="{ 'drop-target': isDragging }"
+                         style="left: 25%;"
+                         @dragover="handleDragOver($event, 1)"
+                         @dragenter="handleDragEnter"
+                         @dragleave="handleDragLeave"
+                         @drop="dropOnFret($event, 1)"></div>
+                    <div class="fret" 
+                         :class="{ 'drop-target': isDragging }"
+                         style="left: 40%;"
+                         @dragover="handleDragOver($event, 2)"
+                         @dragenter="handleDragEnter"
+                         @dragleave="handleDragLeave"
+                         @drop="dropOnFret($event, 2)"></div>
+                    <div class="fret" 
+                         :class="{ 'drop-target': isDragging }"
+                         style="left: 55%;"
+                         @dragover="handleDragOver($event, 3)"
+                         @dragenter="handleDragEnter"
+                         @dragleave="handleDragLeave"
+                         @drop="dropOnFret($event, 3)"></div>
+                    <div class="fret" 
+                         :class="{ 'drop-target': isDragging }"
+                         style="left: 70%;"
+                         @dragover="handleDragOver($event, 4)"
+                         @dragenter="handleDragEnter"
+                         @dragleave="handleDragLeave"
+                         @drop="dropOnFret($event, 4)"></div>
+                </div>
+                
                 <div class="strings-container">
                     <div v-for="(string, index) in strings" :key="index" class="string-row" 
                          :class="{ vibrating: activeString === index }"
                          :style="{ '--string-height': getStringHeight(index) + 'px' }">
                         <div class="string-info">
-                            <div class="string-note">{{ string.note }}</div>
+                            <div class="string-note" 
+                                 :class="{ playing: playingNote === index, dragging: isDragging }"
+                                 draggable="true"
+                                 @dragstart="startDrag($event, index)"
+                                 @dragend="endDrag"
+                                 @click="playTargetFrequency(index, $event)">
+                                {{ getDisplayNote(index) }}
+                            </div>
                             <div 
                                 class="string-visual" 
                                 :class="{ active: activeString === index }"
@@ -420,6 +574,11 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Fret position indicator -->
+                <div class="fret-position-indicator">
+                    {{ getFretPositionText() }}
+                </div>
             </div>
 
             <div class="controls">
@@ -438,6 +597,6 @@
         </div>
     </div>
 
-    <script>const{createApp:createApp}=Vue;createApp({data:()=>({strings:[{note:"E",targetFreq:329.63,octave:4},{note:"B",targetFreq:246.94,octave:3},{note:"G",targetFreq:196,octave:3},{note:"D",targetFreq:146.83,octave:3},{note:"A",targetFreq:110,octave:2},{note:"E",targetFreq:82.41,octave:2}],isListening:!1,microphoneSupported:!1,audioContext:null,analyser:null,microphone:null,dataArray:null,activeString:null,currentFrequency:null,tuningDirection:null,error:null,perfectStartTime:null,lastPluckTime:0}),async mounted(){await this.checkMicrophoneSupport()},methods:{async checkMicrophoneSupport(){try{navigator.mediaDevices&&navigator.mediaDevices.getUserMedia?this.microphoneSupported=!0:this.error="Microphone not supported"}catch(t){this.error="Error checking microphone support"}},async requestMicrophonePermission(){try{(await navigator.mediaDevices.getUserMedia({audio:!0})).getTracks().forEach(t=>t.stop()),this.microphoneSupported=!0,this.error=null}catch(t){this.error="Microphone permission denied"}},async toggleListening(){this.isListening?this.stopListening():await this.startListening()},async startListening(){try{this.error=null;const t=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:!1,noiseSuppression:!1,autoGainControl:!1}});this.audioContext=new(window.AudioContext||window.webkitAudioContext),this.analyser=this.audioContext.createAnalyser(),this.microphone=this.audioContext.createMediaStreamSource(t),this.analyser.fftSize=4096,this.analyser.smoothingTimeConstant=.3,this.dataArray=new Float32Array(this.analyser.fftSize),this.microphone.connect(this.analyser),this.isListening=!0,this.detectPitch()}catch(t){this.error="Failed to access microphone: "+t.message}},stopListening(){this.isListening=!1,this.activeString=null,this.currentFrequency=null,this.tuningDirection=null,this.microphone&&(this.microphone.disconnect(),this.microphone=null),this.audioContext&&(this.audioContext.close(),this.audioContext=null)},detectPitch(){if(!this.isListening)return;this.analyser.getFloatTimeDomainData(this.dataArray);const t=this.autoCorrelate(this.dataArray,this.audioContext.sampleRate);t>0?(this.currentFrequency=t,this.findClosestString(t)):(this.activeString=null,this.tuningDirection=null),requestAnimationFrame(()=>this.detectPitch())},autoCorrelate(t,e){const i=t.length;if(Math.sqrt(t.reduce((t,e)=>t+e*e,0)/i)<.01)return-1;let n=0,r=i-1;for(let e=0;e<i/2;e++)if(Math.abs(t[e])<.2){n=e;break}for(let e=1;e<i/2;e++)if(Math.abs(t[i-e])<.2){r=i-e;break}const s=(t=t.slice(n,r)).length,o=new Array(s).fill(0);for(let e=0;e<s;e++)for(let i=0;i<s-e;i++)o[e]=o[e]+t[i]*t[i+e];let a=0;for(;o[a]>o[a+1];)a++;let c=-1,h=-1;for(let t=a;t<s;t++)o[t]>c&&(c=o[t],h=t);let u=h;const l=o[u-1],g=o[u],p=o[u+1],d=(l-2*g+p)/2;return d&&(u-=(p-l)/2/(2*d)),e/u},findClosestString(t){let e=0,i=Math.abs(t-this.strings[0].targetFreq);for(let n=1;n<this.strings.length;n++){const r=Math.abs(t-this.strings[n].targetFreq);r<i&&(i=r,e=n)}this.activeString=e;const n=t-this.strings[e].targetFreq;Math.abs(n)<3?(this.tuningDirection="perfect",this.handlePerfectTuning()):(this.tuningDirection=n>0?"down":"up",this.perfectStartTime=null)},handlePerfectTuning(){const t=Date.now();null===this.perfectStartTime?this.perfectStartTime=t:t-this.perfectStartTime>=250&&t-this.lastPluckTime>2e3&&(this.playPluckSound(),this.lastPluckTime=t,this.perfectStartTime=t)},playPluckSound(){const t=new(window.AudioContext||window.webkitAudioContext),e=t.createOscillator(),i=t.createGain();e.connect(i),i.connect(t.destination);const n=4*this.strings[this.activeString].targetFreq;e.frequency.setValueAtTime(n,t.currentTime),i.gain.setValueAtTime(0,t.currentTime),i.gain.linearRampToValueAtTime(.3,t.currentTime+.01),i.gain.exponentialRampToValueAtTime(.01,t.currentTime+.15),e.type="triangle",e.start(t.currentTime),e.stop(t.currentTime+.15),setTimeout(()=>{t.close()},200)},getTuningSymbol(){switch(this.tuningDirection){case"up":return"↗";case"down":return"↘";case"perfect":return"✓";default:return""}},getTuningText(){switch(this.tuningDirection){case"up":return"Tune Up";case"down":return"Tune Down";case"perfect":return"Perfect!";default:return""}},getStringHeight:t=>[3,4,5,6,7,8][t],getMeterFillStyle(t){if(!this.currentFrequency||this.activeString!==t)return{height:"0%",bottom:"50%"};const e=this.strings[t].targetFreq,i=this.currentFrequency-e,n=Math.max(-2,Math.min(2,i));if(Math.abs(n)<.1)return{height:"0%",bottom:"50%"};if(n>0){return{height:`${n/2*50}%`,bottom:"50%"}}{const t=Math.abs(n)/2*50;return{height:`${t}%`,bottom:50-t+"%"}}},getStatusText(){return this.error?this.error:this.microphoneSupported?this.isListening?"Listening... Pluck a string":'Click "Start Tuning" to begin':"Microphone not supported"}}}).mount("#app");</script>
+    <script>const{createApp:createApp}=Vue;createApp({data:()=>({strings:[{note:"E",targetFreq:329.63,octave:4},{note:"B",targetFreq:246.94,octave:3},{note:"G",targetFreq:196,octave:3},{note:"D",targetFreq:146.83,octave:3},{note:"A",targetFreq:110,octave:2},{note:"E",targetFreq:82.41,octave:2}],isListening:!1,microphoneSupported:!1,audioContext:null,analyser:null,microphone:null,dataArray:null,activeString:null,currentFrequency:null,tuningDirection:null,error:null,perfectStartTime:null,lastPluckTime:0,playingNote:null,playingAudioContext:null,playingOscillator:null,playingGainNode:null,isDragging:!1,currentFret:0,draggedStringIndex:null,baseFretPosition:0}),async mounted(){await this.checkMicrophoneSupport()},beforeUnmount(){null!==this.playingNote&&this.stopPlayingNote(),this.audioContext&&this.audioContext.close()},methods:{async checkMicrophoneSupport(){try{navigator.mediaDevices&&navigator.mediaDevices.getUserMedia?this.microphoneSupported=!0:this.error="Microphone not supported"}catch(t){this.error="Error checking microphone support"}},async requestMicrophonePermission(){try{(await navigator.mediaDevices.getUserMedia({audio:!0})).getTracks().forEach(t=>t.stop()),this.microphoneSupported=!0,this.error=null}catch(t){this.error="Microphone permission denied"}},async toggleListening(){this.isListening?this.stopListening():await this.startListening()},async startListening(){try{this.error=null;const t=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:!1,noiseSuppression:!1,autoGainControl:!1}});this.audioContext=new(window.AudioContext||window.webkitAudioContext),this.analyser=this.audioContext.createAnalyser(),this.microphone=this.audioContext.createMediaStreamSource(t),this.analyser.fftSize=4096,this.analyser.smoothingTimeConstant=.3,this.dataArray=new Float32Array(this.analyser.fftSize),this.microphone.connect(this.analyser),this.isListening=!0,this.detectPitch()}catch(t){this.error="Failed to access microphone: "+t.message}},stopListening(){this.isListening=!1,this.activeString=null,this.currentFrequency=null,this.tuningDirection=null,null!==this.playingNote&&this.stopPlayingNote(),this.microphone&&(this.microphone.disconnect(),this.microphone=null),this.audioContext&&(this.audioContext.close(),this.audioContext=null)},detectPitch(){if(!this.isListening)return;this.analyser.getFloatTimeDomainData(this.dataArray);const t=this.autoCorrelate(this.dataArray,this.audioContext.sampleRate);t>0?(this.currentFrequency=t,this.findClosestString(t)):(this.activeString=null,this.tuningDirection=null),requestAnimationFrame(()=>this.detectPitch())},autoCorrelate(t,e){const i=t.length;if(Math.sqrt(t.reduce((t,e)=>t+e*e,0)/i)<.01)return-1;let n=0,r=i-1;for(let e=0;e<i/2;e++)if(Math.abs(t[e])<.2){n=e;break}for(let e=1;e<i/2;e++)if(Math.abs(t[i-e])<.2){r=i-e;break}const o=(t=t.slice(n,r)).length,s=new Array(o).fill(0);for(let e=0;e<o;e++)for(let i=0;i<o-e;i++)s[e]=s[e]+t[i]*t[i+e];let a=0;for(;s[a]>s[a+1];)a++;let l=-1,g=-1;for(let t=a;t<o;t++)s[t]>l&&(l=s[t],g=t);let h=g;const c=s[h-1],u=s[h],p=s[h+1],d=(c-2*u+p)/2;return d&&(h-=(p-c)/2/(2*d)),e/h},findClosestString(t){let e=0,i=Math.abs(t-this.strings[0].targetFreq);for(let n=1;n<this.strings.length;n++){const r=Math.abs(t-this.strings[n].targetFreq);r<i&&(i=r,e=n)}this.activeString=e;const n=t-this.strings[e].targetFreq;Math.abs(n)<3?(this.tuningDirection="perfect",this.handlePerfectTuning()):(this.tuningDirection=n>0?"down":"up",this.perfectStartTime=null)},handlePerfectTuning(){const t=Date.now();null===this.perfectStartTime?this.perfectStartTime=t:t-this.perfectStartTime>=250&&t-this.lastPluckTime>2e3&&(this.playPluckSound(),this.lastPluckTime=t,this.perfectStartTime=t)},playPluckSound(){const t=new(window.AudioContext||window.webkitAudioContext),e=t.createOscillator(),i=t.createGain();e.connect(i),i.connect(t.destination);const n=4*this.strings[this.activeString].targetFreq;e.frequency.setValueAtTime(n,t.currentTime),i.gain.setValueAtTime(0,t.currentTime),i.gain.linearRampToValueAtTime(.3,t.currentTime+.01),i.gain.exponentialRampToValueAtTime(.01,t.currentTime+.15),e.type="triangle",e.start(t.currentTime),e.stop(t.currentTime+.15),setTimeout(()=>{t.close()},200)},getTuningSymbol(){switch(this.tuningDirection){case"up":return"↗";case"down":return"↘";case"perfect":return"✓";default:return""}},getTuningText(){switch(this.tuningDirection){case"up":return"Tune Up";case"down":return"Tune Down";case"perfect":return"Perfect!";default:return""}},getStringHeight:t=>[3,4,5,6,7,8][t],getMeterFillStyle(t){if(!this.currentFrequency||this.activeString!==t)return{height:"0%",bottom:"50%"};const e=this.strings[t].targetFreq,i=this.currentFrequency-e,n=Math.max(-2,Math.min(2,i));if(Math.abs(n)<.1)return{height:"0%",bottom:"50%"};if(n>0){return{height:`${n/2*50}%`,bottom:"50%"}}{const t=Math.abs(n)/2*50;return{height:`${t}%`,bottom:50-t+"%"}}},playTargetFrequency(t,e){this.playingNote===t?this.stopPlayingNote():null!==this.playingNote?(this.stopPlayingNote(),setTimeout(()=>{this.startPlayingNote(t)},90)):this.startPlayingNote(t)},startPlayingNote(t){this.playingNote=t,this.playingAudioContext=new(window.AudioContext||window.webkitAudioContext),this.playingOscillator=this.playingAudioContext.createOscillator(),this.playingGainNode=this.playingAudioContext.createGain(),this.playingOscillator.connect(this.playingGainNode),this.playingGainNode.connect(this.playingAudioContext.destination);const e=this.strings[t].targetFreq;this.playingOscillator.frequency.setValueAtTime(e,this.playingAudioContext.currentTime),this.playingGainNode.gain.setValueAtTime(0,this.playingAudioContext.currentTime),this.playingGainNode.gain.linearRampToValueAtTime(.12,this.playingAudioContext.currentTime+.02),this.playingOscillator.type="sine",this.playingOscillator.start(this.playingAudioContext.currentTime)},stopPlayingNote(){if(this.playingOscillator&&this.playingAudioContext&&this.playingGainNode)try{this.playingGainNode.gain.cancelScheduledValues(this.playingAudioContext.currentTime),this.playingGainNode.gain.setValueAtTime(this.playingGainNode.gain.value,this.playingAudioContext.currentTime),this.playingGainNode.gain.exponentialRampToValueAtTime(.001,this.playingAudioContext.currentTime+.08),this.playingOscillator.stop(this.playingAudioContext.currentTime+.08);const t=this.playingAudioContext;setTimeout(()=>{t&&"closed"!==t.state&&t.close()},100)}catch(t){this.playingAudioContext&&"closed"!==this.playingAudioContext.state&&this.playingAudioContext.close()}this.playingNote=null,this.playingAudioContext=null,this.playingOscillator=null,this.playingGainNode=null},startDrag(t,e){console.log("Starting drag for string:",e),this.isDragging=!0,this.draggedStringIndex=e,this.currentFret=0,null!==this.playingNote&&this.stopPlayingNote(),t.dataTransfer.setData("text/plain",e.toString()),t.dataTransfer.effectAllowed="move",t.dataTransfer.dropEffect="move"},endDrag(t){console.log("Drag ended"),this.isDragging=!1,this.draggedStringIndex=null,this.currentFret=0},handleDragOver(t,e){t.preventDefault(),t.dataTransfer.dropEffect="move",this.currentFret=e,console.log("Drag over fret:",e)},handleDragEnter(t){t.preventDefault(),console.log("Drag enter")},handleDragLeave(t){console.log("Drag leave")},dropOnFret(t,e){t.preventDefault(),t.stopPropagation(),this.isDragging=!1,this.draggedStringIndex=null,console.log("Dropped on fret:",e,"Current base position:",this.baseFretPosition);const i=e-this.baseFretPosition;console.log("Semitone shift:",i),0!==i&&(this.transposeAllStrings(i),this.baseFretPosition=e,console.log("Transposed to fret:",e)),this.currentFret=0},transposeAllStrings(t){if(0!==t)for(let e=0;e<this.strings.length;e++)this.strings[e]=this.transposeString(this.strings[e],t)},transposeString(t,e){const i=t.targetFreq*Math.pow(2,e/12),n=this.getNoteIndex(t.note);return{note:["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"][(n+e+120)%12],targetFreq:i,octave:t.octave+Math.floor((n+e)/12)}},getNoteIndex:t=>({C:0,"C#":1,D:2,"D#":3,E:4,F:5,"F#":6,G:7,"G#":8,A:9,"A#":10,B:11}[t]||0),getDisplayNote(t){if(this.isDragging&&this.draggedStringIndex===t&&this.currentFret>=0){const e=[{note:"E",targetFreq:82.41,octave:2},{note:"A",targetFreq:110,octave:2},{note:"D",targetFreq:146.83,octave:3},{note:"G",targetFreq:196,octave:3},{note:"B",targetFreq:246.94,octave:3},{note:"E",targetFreq:329.63,octave:4}][t],i=this.transposeString(e,this.currentFret);return console.log(`String ${t}: ${e.note} -> ${i.note} (fret ${this.currentFret})`),i.note}return this.strings[t].note},getFretPositionText(){const t=this.isDragging?this.currentFret:this.baseFretPosition;return 0===t?"open":1===t?"1st fret":2===t?"2nd fret":3===t?"3rd fret":4===t?"4th fret":`${t}th fret`},getStatusText(){return this.error?this.error:this.microphoneSupported?this.isListening?"Listening... Pluck a string":'Click "Start Tuning" to begin':"Microphone not supported"}}}).mount("#app");</script>
 </body>
 </html>
