@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entropy Emergence - Generative Art</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* Anthropic Brand Colors */
+        :root {
+            --anthropic-dark: #141413;
+            --anthropic-light: #faf9f5;
+            --anthropic-mid-gray: #b0aea5;
+            --anthropic-light-gray: #e8e6dc;
+            --anthropic-orange: #d97757;
+            --anthropic-blue: #6a9bcc;
+            --anthropic-green: #788c5d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #080808;
+            min-height: 100vh;
+            color: var(--anthropic-dark);
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+            padding: 0;
+            gap: 0;
+            position: relative;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 20px;
+            top: 20px;
+            bottom: 20px;
+            width: 320px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(20, 20, 19, 0.1);
+            overflow-y: auto;
+            overflow-x: hidden;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        .sidebar.hidden {
+            transform: translateX(-100%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .sidebar h1 {
+            font-family: 'Lora', serif;
+            font-size: 24px;
+            font-weight: 500;
+            color: var(--anthropic-dark);
+            margin-bottom: 8px;
+        }
+
+        .sidebar .subtitle {
+            color: var(--anthropic-mid-gray);
+            font-size: 14px;
+            margin-bottom: 32px;
+            line-height: 1.4;
+        }
+
+        /* Control Sections */
+        .control-section {
+            margin-bottom: 32px;
+        }
+
+        .control-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--anthropic-dark);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-section h3::before {
+            content: '•';
+            color: var(--anthropic-orange);
+            font-weight: bold;
+        }
+
+        /* Seed Controls */
+        .seed-input {
+            width: 100%;
+            background: var(--anthropic-light);
+            padding: 12px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin-bottom: 12px;
+            border: 1px solid var(--anthropic-light-gray);
+            text-align: center;
+        }
+
+        .seed-input:focus {
+            outline: none;
+            border-color: var(--anthropic-orange);
+            box-shadow: 0 0 0 2px rgba(217, 119, 87, 0.1);
+            background: white;
+        }
+
+        .seed-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .regen-button {
+            margin-bottom: 0;
+        }
+
+        /* Parameter Controls */
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--anthropic-dark);
+            margin-bottom: 8px;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .slider-container input[type="range"] {
+            flex: 1;
+            height: 4px;
+            background: var(--anthropic-light-gray);
+            border-radius: 2px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--anthropic-orange);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .slider-container input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            background: #c86641;
+        }
+
+        .slider-container input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: var(--anthropic-orange);
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .value-display {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: var(--anthropic-mid-gray);
+            min-width: 60px;
+            text-align: right;
+        }
+
+        /* Buttons */
+        .button {
+            background: var(--anthropic-orange);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .button:hover {
+            background: #c86641;
+            transform: translateY(-1px);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .button.secondary {
+            background: var(--anthropic-blue);
+        }
+
+        .button.secondary:hover {
+            background: #5a8bb8;
+        }
+
+        .button.tertiary {
+            background: var(--anthropic-green);
+        }
+
+        .button.tertiary:hover {
+            background: #6b7b52;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .button-row .button {
+            flex: 1;
+        }
+
+        /* Canvas Area */
+        .canvas-area {
+            flex: 1;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 0;
+        }
+
+        #canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #080808;
+        }
+
+        #canvas-container canvas {
+            display: block;
+            width: 100% !important;
+            height: auto !important;
+        }
+
+        /* Camio Logo Overlay */
+        #camio-logo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            transform-origin: center center;
+            height: 10vh;
+            width: auto;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        /* Loading State */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--anthropic-mid-gray);
+        }
+
+        /* Toggle Button */
+        .toggle-controls {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: none;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(20, 20, 19, 0.15);
+            transition: all 0.2s ease;
+        }
+
+        .toggle-controls:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(20, 20, 19, 0.2);
+        }
+
+        .toggle-controls svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--anthropic-dark);
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+        }
+
+        /* Responsive - Stack on mobile */
+        @media (max-width: 600px) {
+            .sidebar {
+                left: 10px;
+                right: 10px;
+                top: 10px;
+                bottom: 10px;
+                width: auto;
+            }
+
+            .toggle-controls {
+                top: 15px;
+                left: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Toggle Button -->
+    <button class="toggle-controls" onclick="toggleSidebar()" aria-label="Toggle controls">
+        <svg viewBox="0 0 24 24">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+    </button>
+
+    <div class="container">
+        <!-- Control Sidebar -->
+        <div class="sidebar hidden">
+            <h1>Entropy Emergence</h1>
+            <div class="subtitle">The transformation of noise into signal through temporal evolution</div>
+
+            <!-- Seed Section -->
+            <div class="control-section">
+                <h3>Seed</h3>
+                <input type="number" id="seed-input" class="seed-input" value="12345" onchange="updateSeed()">
+                <div class="seed-controls">
+                    <button class="button secondary" onclick="previousSeed()">← Prev</button>
+                    <button class="button secondary" onclick="nextSeed()">Next →</button>
+                </div>
+                <button class="button tertiary regen-button" onclick="randomSeedAndUpdate()">↻ Random</button>
+            </div>
+
+            <!-- Parameters Section -->
+            <div class="control-section">
+                <h3>Parameters</h3>
+
+                <!-- Particle Count -->
+                <div class="control-group">
+                    <label>Particle Count</label>
+                    <div class="slider-container">
+                        <input type="range" id="particleCount" min="2000" max="8000" step="500" value="4000" oninput="updateParam('particleCount', this.value)">
+                        <span class="value-display" id="particleCount-value">4000</span>
+                    </div>
+                </div>
+
+                <!-- Transition Rate -->
+                <div class="control-group">
+                    <label>Transition Rate</label>
+                    <div class="slider-container">
+                        <input type="range" id="transitionRate" min="0.5" max="3.0" step="0.1" value="1.5" oninput="updateParam('transitionRate', this.value)">
+                        <span class="value-display" id="transitionRate-value">1.5</span>
+                    </div>
+                </div>
+
+                <!-- Noise Intensity -->
+                <div class="control-group">
+                    <label>Noise Intensity</label>
+                    <div class="slider-container">
+                        <input type="range" id="noiseIntensity" min="1.0" max="5.0" step="0.2" value="2.5" oninput="updateParam('noiseIntensity', this.value)">
+                        <span class="value-display" id="noiseIntensity-value">2.5</span>
+                    </div>
+                </div>
+
+                <!-- Signal Strength -->
+                <div class="control-group">
+                    <label>Signal Strength</label>
+                    <div class="slider-container">
+                        <input type="range" id="signalStrength" min="0.5" max="3.0" step="0.1" value="1.2" oninput="updateParam('signalStrength', this.value)">
+                        <span class="value-display" id="signalStrength-value">1.2</span>
+                    </div>
+                </div>
+
+                <!-- Max Steps -->
+                <div class="control-group">
+                    <label>Evolution Steps</label>
+                    <div class="slider-container">
+                        <input type="range" id="maxSteps" min="50" max="300" step="10" value="150" oninput="updateParam('maxSteps', this.value)">
+                        <span class="value-display" id="maxSteps-value">150</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions Section -->
+            <div class="control-section">
+                <h3>Actions</h3>
+                <div class="button-row">
+                    <button class="button" onclick="resetParameters()">Reset</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Canvas Area -->
+        <div class="canvas-area">
+            <div id="canvas-container">
+                <div class="loading">Initializing generative art...</div>
+                <!-- Camio Logo Overlay -->
+                <svg id="camio-logo" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 368.9196 524.9902"><defs><style>.cls-1{fill:#505153;}.cls-2{fill:#fff;}.cls-3{fill:url(#linear-gradient);}.cls-4{fill:url(#linear-gradient-2);}</style><linearGradient id="linear-gradient" x1="-828.1267" y1="432.1994" x2="-827.5965" y2="431.7022" gradientTransform="matrix(217.0818, 217.0818, 217.0818, -217.0818, 86130.9916, 273665.5051)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#51b448"/><stop offset="1" stop-color="#5cb447"/></linearGradient><linearGradient id="linear-gradient-2" x1="-828.3002" y1="432.2756" x2="-827.5508" y2="431.5312" gradientTransform="matrix(217.0812, 217.0812, 217.0818, -217.0818, 86130.6726, 273664.6861)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#faa21d"/><stop offset="1" stop-color="#f37021"/></linearGradient></defs><title>camio-logo-badge-text</title><g id="art"><path class="cls-1" d="M28.3543,448.663a43.8837,43.8837,0,0,1,2.6162-15.63,34.6087,34.6087,0,0,1,6.9785-11.5576,29.9792,29.9792,0,0,1,10.1045-7.124,30.3833,30.3833,0,0,1,12.14-2.4717,25.43,25.43,0,0,1,12.1406,2.6172,37.9745,37.9745,0,0,1,8.3594,5.961l-3.78,4.5068a32.0344,32.0344,0,0,0-7.414-5.3067,19.6442,19.6442,0,0,0-9.16-2.1084,22.2521,22.2521,0,0,0-9.959,2.254A24.0934,24.0934,0,0,0,42.3836,426.2a31.4037,31.4037,0,0,0-5.3789,9.8135,38.4914,38.4914,0,0,0-1.9629,12.6494,40.7531,40.7531,0,0,0,1.8174,12.503,29.9421,29.9421,0,0,0,5.0889,9.7412,22.6037,22.6037,0,0,0,7.9961,6.3242,23.8073,23.8073,0,0,0,10.3945,2.2529,22.8789,22.8789,0,0,0,10.25-2.3262,35.2269,35.2269,0,0,0,8.36-5.67l3.3438,4.3614a41.2127,41.2127,0,0,1-10.0322,6.6884,28.1789,28.1789,0,0,1-12.2119,2.6172,31.4866,31.4866,0,0,1-12.5762-2.4717A29.18,29.18,0,0,1,37.44,475.56a32.753,32.753,0,0,1-6.6875-11.4131A46.161,46.161,0,0,1,28.3543,448.663Z"/><path class="cls-1" d="M86.7987,465.9638q0-11.483,10.9043-17.5918,10.9027-6.107,34.166-8.7236a40.0546,40.0546,0,0,0-.5088-7.9238,20.72,20.72,0,0,0-2.4717-7.1231,14.2427,14.2427,0,0,0-5.0889-5.0889A16.0487,16.0487,0,0,0,115.44,417.55a29.78,29.78,0,0,0-12.9395,2.7627,55.24,55.24,0,0,0-9.3047,5.379l-2.9082-4.7979q1.8882-1.3081,4.58-2.9072a42.5612,42.5612,0,0,1,5.9609-2.9082,52.5693,52.5693,0,0,1,7.1963-2.253,34.668,34.668,0,0,1,8.1416-.9453,23.3057,23.3057,0,0,1,10.4678,2.1084,18.4051,18.4051,0,0,1,6.833,5.7422,22.9663,22.9663,0,0,1,3.708,8.5049,48.2492,48.2492,0,0,1,1.09,10.541V483.41h-5.379l-.7275-9.0137h-.29a77.4,77.4,0,0,1-11.5586,7.4873,27.72,27.72,0,0,1-13.1573,3.2715,25.6449,25.6449,0,0,1-7.8515-1.1631,19.4085,19.4085,0,0,1-6.47-3.49,15.7537,15.7537,0,0,1-4.4336-5.96A21.127,21.127,0,0,1,86.7987,465.9638Zm6.6875-.291q0,7.5615,4.3623,10.7588a16.97,16.97,0,0,0,10.3222,3.1982,24.6259,24.6259,0,0,0,11.6309-2.9072A69.0969,69.0969,0,0,0,131.869,468.29V444.5917a143.9581,143.9581,0,0,0-18.1006,3.1983,47.4273,47.4273,0,0,0-11.85,4.5068,17.3214,17.3214,0,0,0-6.47,5.961A14.3886,14.3886,0,0,0,93.4862,465.6728Z"/><path class="cls-1" d="M156.0018,413.624h5.5244l.581,10.7588h.4366a45.289,45.289,0,0,1,10.3955-8.9414,21.7453,21.7453,0,0,1,11.5576-3.5616q8.43,0,12.9395,3.8526a20.9126,20.9126,0,0,1,6.3974,10.3955,69.5677,69.5677,0,0,1,11.8486-10.3955,21.0126,21.0126,0,0,1,11.85-3.8526q20.9355,0,20.9355,26.751V483.41h-6.542V439.5029q0-11.1929-3.78-16.501-3.7821-5.3056-11.7763-5.3066-9.4527,0-20.9356,13.0849v52.63H199.036V439.5029q0-11.1929-3.78-16.501-3.7823-5.3056-11.9219-5.3066-9.4512,0-20.9355,13.0849v52.63h-6.3965Z"/><path class="cls-1" d="M270.1307,396.76a5.7524,5.7524,0,0,1-4.1436-1.6,5.3837,5.3837,0,0,1-1.6718-4.07,5.5135,5.5135,0,0,1,1.6718-4.2891,6.3844,6.3844,0,0,1,8.2871,0,5.52,5.52,0,0,1,1.6719,4.2891,5.3907,5.3907,0,0,1-1.6719,4.07A5.76,5.76,0,0,1,270.1307,396.76Zm-3.3438,16.8643h6.3965V483.41h-6.3965Z"/><path class="cls-1" d="M286.994,448.663a44.9755,44.9755,0,0,1,2.5439-15.63,34.2863,34.2863,0,0,1,6.833-11.5576,29.5279,29.5279,0,0,1,21.8809-9.5957,30.0462,30.0462,0,0,1,11.9941,2.4717,29.2585,29.2585,0,0,1,10.0322,7.124,34.3813,34.3813,0,0,1,6.8331,11.5576,45.0456,45.0456,0,0,1,2.5439,15.63,43.8118,43.8118,0,0,1-2.5439,15.4834,34.6276,34.6276,0,0,1-6.8331,11.4131,29.2171,29.2171,0,0,1-10.0322,7.124,30.0633,30.0633,0,0,1-11.9941,2.4717,29.5279,29.5279,0,0,1-21.8809-9.5957,34.53,34.53,0,0,1-6.833-11.4131A43.7443,43.7443,0,0,1,286.994,448.663Zm6.6875,0a39.3262,39.3262,0,0,0,1.89,12.503,31.0336,31.0336,0,0,0,5.1611,9.7412,23.2236,23.2236,0,0,0,7.7784,6.3242,21.4525,21.4525,0,0,0,9.7412,2.2529,21.9074,21.9074,0,0,0,9.8135-2.2529,22.9924,22.9924,0,0,0,7.8505-6.3242,31.0539,31.0539,0,0,0,5.1622-9.7412,39.408,39.408,0,0,0,1.89-12.503,39.9137,39.9137,0,0,0-1.89-12.6494,32.0227,32.0227,0,0,0-5.1622-9.8135,22.675,22.675,0,0,0-7.8505-6.3964,21.9336,21.9336,0,0,0-9.8135-2.254,21.4779,21.4779,0,0,0-9.7412,2.254,22.8991,22.8991,0,0,0-7.7784,6.3964,32.0013,32.0013,0,0,0-5.1611,9.8135A39.8316,39.8316,0,0,0,293.6815,448.663Z"/><path id="Oval-1-copy-2" class="cls-2" d="M184.46,368.92c101.8743,0,184.46-82.5855,184.46-184.46S286.3341,0,184.46,0,0,82.5855,0,184.46,82.5855,368.92,184.46,368.92Z"/><circle id="Oval-1-copy" class="cls-3" cx="185.9623" cy="182.9573" r="162.7571"/><path id="Oval-1-copy-2-2" data-name="Oval-1-copy-2" class="cls-4" d="M300.7,67.2476,184.9269,183.0207,300.7,298.7933a163.1964,163.1964,0,1,1,.3764-231.17"/><path id="Oval-1-copy-2-3" data-name="Oval-1-copy" class="cls-2" d="M128.92,241.063a80.8008,80.8008,0,1,0,0-114.27A80.8009,80.8009,0,0,0,128.92,241.063Z"/><rect id="Rectangle-3" class="cls-2" x="226.455" y="92.4957" width="88.243" height="11.6949" transform="translate(9.7109 220.1305) rotate(-45)"/><rect id="Rectangle-3-copy" class="cls-2" x="260.5003" y="211.6624" width="13.6852" height="102.639" transform="translate(-107.3173 279.1509) rotate(-47)"/></g></svg>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════════════════
+        // STRING HASHING - Convert strings to numeric seeds
+        // ═══════════════════════════════════════════════════════════════════════
+
+        function hashString(str) {
+            // Simple but effective hash function (djb2)
+            let hash = 5381;
+            for (let i = 0; i < str.length; i++) {
+                hash = ((hash << 5) + hash) + str.charCodeAt(i);
+                hash = hash & hash; // Convert to 32-bit integer
+            }
+            // Convert to positive number in reasonable range
+            return Math.abs(hash) % 999999 + 1;
+        }
+
+        function getInitialSeed() {
+            // Check for query string parameter 's'
+            const urlParams = new URLSearchParams(window.location.search);
+            const seedString = urlParams.get('s');
+
+            if (seedString) {
+                return hashString(seedString);
+            }
+
+            return 12345; // Default seed
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // GENERATIVE ART PARAMETERS
+        // ═══════════════════════════════════════════════════════════════════════
+
+        let params = {
+            seed: getInitialSeed(),
+            particleCount: 4000,
+            transitionRate: 1.5,
+            noiseIntensity: 2.5,
+            signalStrength: 1.2,
+            maxSteps: 150
+        };
+
+        let defaultParams = {...params};
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // P5.JS GENERATIVE ART ALGORITHM - ENTROPY EMERGENCE
+        // ═══════════════════════════════════════════════════════════════════════
+
+        let particles = [];
+        let currentStep = 0;
+        let isAnimating = true;
+
+        function setup() {
+            // Create canvas to fit window
+            let canvasSize = min(windowWidth, windowHeight);
+            let canvas = createCanvas(canvasSize, canvasSize);
+            canvas.parent('canvas-container');
+
+            initializeSystem();
+
+            // Remove loading message
+            document.querySelector('.loading').style.display = 'none';
+        }
+
+        function windowResized() {
+            // Resize canvas when window is resized
+            let canvasSize = min(windowWidth, windowHeight);
+            resizeCanvas(canvasSize, canvasSize);
+            initializeSystem();
+        }
+
+        function initializeSystem() {
+            // Seed the randomness for reproducibility
+            randomSeed(params.seed);
+            noiseSeed(params.seed);
+
+            // Clear canvas
+            background(8, 8, 8);
+
+            // Reset animation
+            currentStep = 0;
+            isAnimating = true;
+
+            // Reset logo opacity and scale
+            const logoElement = document.getElementById('camio-logo');
+            if (logoElement) {
+                logoElement.style.opacity = 0;
+                logoElement.style.transform = 'translate(-50%, -50%) scale(0)';
+            }
+
+            // Initialize particles
+            particles = [];
+            for (let i = 0; i < params.particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function draw() {
+            if (!isAnimating || currentStep >= params.maxSteps) {
+                noLoop();
+                return;
+            }
+
+            // Calculate temporal blend factor (0 = pure noise, 1 = pure signal)
+            let progress = currentStep / params.maxSteps;
+            let blendFactor = 1 / (1 + Math.exp(-10 * (progress - 0.5))); // Sigmoid transition
+
+            // Update and display particles
+            for (let particle of particles) {
+                particle.update(currentStep, blendFactor);
+                particle.display(currentStep, blendFactor);
+            }
+
+            // Update Camio logo opacity and scale based on signal convergence
+            // Logo emerges/expands from center as signal converges (30% to 100% convergence)
+            const logoElement = document.getElementById('camio-logo');
+            if (logoElement) {
+                if (blendFactor > 0.3) {
+                    // Map convergence to opacity and scale (0.3 -> 0%, 1.0 -> 100%)
+                    let progress = (blendFactor - 0.3) / 0.7;
+                    progress = Math.max(0, Math.min(1, progress));
+
+                    // Opacity fades in
+                    logoElement.style.opacity = progress;
+
+                    // Scale expands from 0 to 1 (birthed from convergence point)
+                    let scale = progress;
+                    logoElement.style.transform = `translate(-50%, -50%) scale(${scale})`;
+                } else {
+                    logoElement.style.opacity = 0;
+                    logoElement.style.transform = 'translate(-50%, -50%) scale(0)';
+                }
+            }
+
+            currentStep++;
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // PARTICLE SYSTEM - NOISE TO SIGNAL TRANSFORMATION
+        // ═══════════════════════════════════════════════════════════════════════
+
+        class Particle {
+            constructor() {
+                // Initial position (random across canvas)
+                this.startX = random(width);
+                this.startY = random(height);
+
+                // Noise parameters for chaotic motion
+                this.noiseOffsetX = random(10000);
+                this.noiseOffsetY = random(10000);
+                this.noiseOffsetVel = random(10000);
+
+                // Signal parameters for organized motion
+                this.signalPhaseX = random(TWO_PI);
+                this.signalPhaseY = random(TWO_PI);
+                this.signalFreqX = random(0.5, 2.0);
+                this.signalFreqY = random(0.5, 2.0);
+
+                // Visual properties - color identity
+                this.hueOffset = random(360);
+                // Assign Camio color identity (50/50 split between orange and green)
+                this.camioColor = random() > 0.5 ? 'orange' : 'green';
+
+                // Position tracking
+                this.x = this.startX;
+                this.y = this.startY;
+                this.prevX = this.x;
+                this.prevY = this.y;
+            }
+
+            update(step, blendFactor) {
+                this.prevX = this.x;
+                this.prevY = this.y;
+
+                // NOISE COMPONENT - High-frequency chaotic motion
+                let noiseX = (noise(this.noiseOffsetX + step * 0.02) - 0.5) * params.noiseIntensity * 20;
+                let noiseY = (noise(this.noiseOffsetY + step * 0.02) - 0.5) * params.noiseIntensity * 20;
+
+                // Add turbulence with multiple octaves
+                noiseX += (noise(this.noiseOffsetX * 2 + step * 0.05) - 0.5) * params.noiseIntensity * 10;
+                noiseY += (noise(this.noiseOffsetY * 2 + step * 0.05) - 0.5) * params.noiseIntensity * 10;
+
+                // SIGNAL COMPONENT - Low-frequency organized motion
+                let time = step * 0.015 * params.transitionRate;
+
+                // Create flow field using sine waves and spatial noise
+                let signalFieldX = sin(this.startX * 0.003 + time + this.signalPhaseX) * params.signalStrength;
+                let signalFieldY = cos(this.startY * 0.003 + time + this.signalPhaseY) * params.signalStrength;
+
+                // Add swirling attractor based on distance from center
+                let dx = this.x - width / 2;
+                let dy = this.y - height / 2;
+                let distFromCenter = sqrt(dx * dx + dy * dy);
+                let angle = atan2(dy, dx);
+
+                signalFieldX += cos(angle + time) * (1 - distFromCenter / width) * params.signalStrength * 15;
+                signalFieldY += sin(angle + time) * (1 - distFromCenter / height) * params.signalStrength * 15;
+
+                // BLEND: Transition from noise to signal
+                let moveX = lerp(noiseX, signalFieldX, blendFactor);
+                let moveY = lerp(noiseY, signalFieldY, blendFactor);
+
+                // Update position
+                this.x += moveX;
+                this.y += moveY;
+
+                // Wrap around edges
+                if (this.x < 0) this.x = width;
+                if (this.x > width) this.x = 0;
+                if (this.y < 0) this.y = height;
+                if (this.y > height) this.y = 0;
+            }
+
+            display(step, blendFactor) {
+                // Calculate velocity for color mapping
+                let dx = this.x - this.prevX;
+                let dy = this.y - this.prevY;
+                let velocity = sqrt(dx * dx + dy * dy);
+
+                // COLOR ENCODING:
+                // NOISE PHASE: Random, chaotic colors
+                // SIGNAL PHASE: Converge to Camio colors (#F7931E orange, #5ED341 green)
+                // Hue: Transitions from chaos to Camio brand colors
+                // Saturation: Velocity (fast = saturated, slow = desaturated)
+                // Brightness: Temporal progress (early = dark, late = bright)
+
+                colorMode(HSB, 360, 100, 100);
+
+                // Camio brand colors in HSB
+                const camioOrange = 30;  // #F7931E
+                const camioGreen = 108;   // #5ED341
+
+                // Determine which Camio color this particle converges to
+                let targetHue = (this.camioColor === 'orange') ? camioOrange : camioGreen;
+
+                // NOISE PHASE: Start with random hue
+                let noiseHue = (this.hueOffset + step * 0.5) % 360;
+
+                // SIGNAL PHASE: Converge to Camio color
+                // Use pow to make the convergence more dramatic in late stage
+                let convergence = pow(blendFactor, 1.5);
+                let hue = lerp(noiseHue, targetHue, convergence);
+
+                // Saturation increases as signal emerges
+                let baseSaturation = map(velocity, 0, 10, 30, 95);
+                let saturation = lerp(baseSaturation * 0.4, baseSaturation, blendFactor);
+
+                // Brightness increases with signal emergence
+                let brightness = map(blendFactor, 0, 1, 5, 88);
+
+                // Alpha based on blend factor (signal becomes more opaque)
+                let alpha = map(blendFactor, 0, 1, 3, 15);
+
+                stroke(hue, saturation, brightness, alpha);
+                strokeWeight(1);
+
+                // Draw trail from previous position
+                line(this.prevX, this.prevY, this.x, this.y);
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // UI CONTROL HANDLERS
+        // ═══════════════════════════════════════════════════════════════════════
+
+        function updateParam(paramName, value) {
+            params[paramName] = parseFloat(value);
+            document.getElementById(paramName + '-value').textContent = value;
+
+            // Restart animation with new parameters
+            loop();
+            initializeSystem();
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // SIDEBAR TOGGLE
+        // ═══════════════════════════════════════════════════════════════════════
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('hidden');
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // SEED CONTROL FUNCTIONS
+        // ═══════════════════════════════════════════════════════════════════════
+
+        function updateSeedDisplay() {
+            document.getElementById('seed-input').value = params.seed;
+        }
+
+        function updateSeed() {
+            let input = document.getElementById('seed-input');
+            let newSeed = parseInt(input.value);
+            if (newSeed && newSeed > 0) {
+                params.seed = newSeed;
+                loop();
+                initializeSystem();
+            } else {
+                updateSeedDisplay();
+            }
+        }
+
+        function previousSeed() {
+            params.seed = Math.max(1, params.seed - 1);
+            updateSeedDisplay();
+            loop();
+            initializeSystem();
+        }
+
+        function nextSeed() {
+            params.seed = params.seed + 1;
+            updateSeedDisplay();
+            loop();
+            initializeSystem();
+        }
+
+        function randomSeedAndUpdate() {
+            params.seed = Math.floor(Math.random() * 999999) + 1;
+            updateSeedDisplay();
+            loop();
+            initializeSystem();
+        }
+
+        function resetParameters() {
+            params = {...defaultParams};
+
+            // Update UI elements
+            document.getElementById('particleCount').value = params.particleCount;
+            document.getElementById('particleCount-value').textContent = params.particleCount;
+            document.getElementById('transitionRate').value = params.transitionRate;
+            document.getElementById('transitionRate-value').textContent = params.transitionRate;
+            document.getElementById('noiseIntensity').value = params.noiseIntensity;
+            document.getElementById('noiseIntensity-value').textContent = params.noiseIntensity;
+            document.getElementById('signalStrength').value = params.signalStrength;
+            document.getElementById('signalStrength-value').textContent = params.signalStrength;
+            document.getElementById('maxSteps').value = params.maxSteps;
+            document.getElementById('maxSteps-value').textContent = params.maxSteps;
+
+            updateSeedDisplay();
+            loop();
+            initializeSystem();
+        }
+
+        // Initialize UI on load
+        window.addEventListener('load', function() {
+            updateSeedDisplay();
+        });
+    </script>
+</body>
+</html>
