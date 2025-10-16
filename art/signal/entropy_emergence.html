@@ -621,7 +621,12 @@
                 }
 
                 // Increment or decrement step based on direction
-                currentStep += animationDirection;
+                // Reverse animation (signal->noise) is 4x faster than forward (noise->signal)
+                if (animationDirection === 1) {
+                    currentStep += 1;
+                } else {
+                    currentStep -= 4;
+                }
             }
 
             // Update Camio logo opacity and scale based on signal convergence
