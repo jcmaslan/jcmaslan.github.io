@@ -420,6 +420,7 @@
             pointer-events: none;
             transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55),
                         opacity 0.6s ease-out;
+            overflow: visible;
         }
 
         #logo-link.visible {
@@ -433,9 +434,13 @@
             display: block;
             width: 200px;
             height: auto;
+            overflow: visible;
             filter: drop-shadow(0 0 30px rgba(100, 200, 255, 0.8))
                     drop-shadow(0 0 60px rgba(100, 200, 255, 0.6))
                     drop-shadow(0 0 90px rgba(100, 200, 255, 0.4));
+            -webkit-filter: drop-shadow(0 0 30px rgba(100, 200, 255, 0.8))
+                           drop-shadow(0 0 60px rgba(100, 200, 255, 0.6))
+                           drop-shadow(0 0 90px rgba(100, 200, 255, 0.4));
         }
 
         /* Electric arc animation */
@@ -444,16 +449,36 @@
                 filter: drop-shadow(0 0 30px rgba(100, 200, 255, 0.8))
                         drop-shadow(0 0 60px rgba(100, 200, 255, 0.6))
                         drop-shadow(0 0 90px rgba(100, 200, 255, 0.4));
+                -webkit-filter: drop-shadow(0 0 30px rgba(100, 200, 255, 0.8))
+                               drop-shadow(0 0 60px rgba(100, 200, 255, 0.6))
+                               drop-shadow(0 0 90px rgba(100, 200, 255, 0.4));
             }
             50% {
                 filter: drop-shadow(0 0 40px rgba(150, 220, 255, 1))
                         drop-shadow(0 0 80px rgba(150, 220, 255, 0.8))
                         drop-shadow(0 0 120px rgba(100, 200, 255, 0.6));
+                -webkit-filter: drop-shadow(0 0 40px rgba(150, 220, 255, 1))
+                               drop-shadow(0 0 80px rgba(150, 220, 255, 0.8))
+                               drop-shadow(0 0 120px rgba(100, 200, 255, 0.6));
+            }
+        }
+
+        @-webkit-keyframes electric-pulse {
+            0%, 100% {
+                -webkit-filter: drop-shadow(0 0 30px rgba(100, 200, 255, 0.8))
+                               drop-shadow(0 0 60px rgba(100, 200, 255, 0.6))
+                               drop-shadow(0 0 90px rgba(100, 200, 255, 0.4));
+            }
+            50% {
+                -webkit-filter: drop-shadow(0 0 40px rgba(150, 220, 255, 1))
+                               drop-shadow(0 0 80px rgba(150, 220, 255, 0.8))
+                               drop-shadow(0 0 120px rgba(100, 200, 255, 0.6));
             }
         }
 
         #logo-link.visible #logo-overlay {
             animation: electric-pulse 2s ease-in-out infinite;
+            -webkit-animation: electric-pulse 2s ease-in-out infinite;
         }
 
         /* Tagline text */
