@@ -421,6 +421,8 @@
             transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55),
                         opacity 0.6s ease-out;
             overflow: visible;
+            display: inline-block;
+            line-height: 0;
         }
 
         #logo-link.visible {
@@ -441,6 +443,10 @@
             -webkit-filter: drop-shadow(0 0 30px rgba(100, 200, 255, 0.8))
                            drop-shadow(0 0 60px rgba(100, 200, 255, 0.6))
                            drop-shadow(0 0 90px rgba(100, 200, 255, 0.4));
+            will-change: filter;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            transform: translateZ(0);
         }
 
         /* Electric arc animation */
@@ -637,7 +643,7 @@
                 <!-- Logo link wrapper -->
                 <a id="logo-link" href="https://camio.com" target="_blank" rel="noopener noreferrer">
                     <!-- Logo overlay - browser-rendered SVG -->
-                    <svg id="logo-overlay" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 368.9196 524.9902">
+                    <svg id="logo-overlay" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 368.9196 524.9902" style="overflow: visible;">
         <defs>
             <style>.cls-1{fill:#fff;}.cls-2{fill:#fff;}.cls-3{fill:url(#linear-gradient);}.cls-4{fill:url(#linear-gradient-2);}</style>
             <linearGradient id="linear-gradient" x1="-828.1267" y1="432.1994" x2="-827.5965" y2="431.7022" gradientTransform="matrix(217.0818, 217.0818, 217.0818, -217.0818, 86130.9916, 273665.5051)" gradientUnits="userSpaceOnUse">
