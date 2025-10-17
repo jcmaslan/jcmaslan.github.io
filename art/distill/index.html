@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signal Distillation - Generative Art</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* Anthropic Brand Colors */
+        :root {
+            --anthropic-dark: #141413;
+            --anthropic-light: #faf9f5;
+            --anthropic-mid-gray: #b0aea5;
+            --anthropic-light-gray: #e8e6dc;
+            --anthropic-orange: #d97757;
+            --anthropic-blue: #6a9bcc;
+            --anthropic-green: #788c5d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--anthropic-light) 0%, #f5f3ee 100%);
+            min-height: 100vh;
+            color: var(--anthropic-dark);
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 320px;
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(20, 20, 19, 0.1);
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .sidebar h1 {
+            font-family: 'Lora', serif;
+            font-size: 24px;
+            font-weight: 500;
+            color: var(--anthropic-dark);
+            margin-bottom: 8px;
+        }
+
+        .sidebar .subtitle {
+            color: var(--anthropic-mid-gray);
+            font-size: 14px;
+            margin-bottom: 32px;
+            line-height: 1.4;
+        }
+
+        /* Control Sections */
+        .control-section {
+            margin-bottom: 32px;
+        }
+
+        .control-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--anthropic-dark);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-section h3::before {
+            content: '•';
+            color: var(--anthropic-orange);
+            font-weight: bold;
+        }
+
+        /* Seed Controls */
+        .seed-input {
+            width: 100%;
+            background: var(--anthropic-light);
+            padding: 12px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin-bottom: 12px;
+            border: 1px solid var(--anthropic-light-gray);
+            text-align: center;
+        }
+
+        .seed-input:focus {
+            outline: none;
+            border-color: var(--anthropic-orange);
+            box-shadow: 0 0 0 2px rgba(217, 119, 87, 0.1);
+            background: white;
+        }
+
+        .seed-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .regen-button {
+            margin-bottom: 0;
+        }
+
+        /* Parameter Controls */
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--anthropic-dark);
+            margin-bottom: 8px;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .slider-container input[type="range"] {
+            flex: 1;
+            height: 4px;
+            background: var(--anthropic-light-gray);
+            border-radius: 2px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--anthropic-orange);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .slider-container input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            background: #c86641;
+        }
+
+        .slider-container input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: var(--anthropic-orange);
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .value-display {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: var(--anthropic-mid-gray);
+            min-width: 60px;
+            text-align: right;
+        }
+
+        /* Buttons */
+        .button {
+            background: var(--anthropic-orange);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .button:hover {
+            background: #c86641;
+            transform: translateY(-1px);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .button.secondary {
+            background: var(--anthropic-blue);
+        }
+
+        .button.secondary:hover {
+            background: #5a8bb8;
+        }
+
+        .button.tertiary {
+            background: var(--anthropic-green);
+        }
+
+        .button.tertiary:hover {
+            background: #6b7b52;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .button-row .button {
+            flex: 1;
+        }
+
+        /* Canvas Area */
+        .canvas-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 0;
+        }
+
+        #canvas-container {
+            width: 100%;
+            max-width: 1000px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(20, 20, 19, 0.1);
+            background: white;
+        }
+
+        #canvas-container canvas {
+            display: block;
+            width: 100% !important;
+            height: auto !important;
+        }
+
+        /* Loading State */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--anthropic-mid-gray);
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+            }
+
+            .canvas-area {
+                padding: 20px;
+            }
+        }
+
+        /* Logo overlay */
+        #logo-overlay {
+            position: absolute;
+            width: 200px;
+            height: auto;
+            left: 50%;
+            bottom: 15%;
+            transform: translate(-50%, 0) scale(0);
+            opacity: 0;
+            pointer-events: none;
+            filter: drop-shadow(0 0 30px rgba(100, 200, 255, 0.8))
+                    drop-shadow(0 0 60px rgba(100, 200, 255, 0.6))
+                    drop-shadow(0 0 90px rgba(100, 200, 255, 0.4));
+            transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+                        opacity 0.6s ease-out;
+        }
+
+        #logo-overlay.visible {
+            transform: translate(-50%, 0) scale(1);
+            opacity: 1;
+        }
+
+        /* Electric arc animation */
+        @keyframes electric-pulse {
+            0%, 100% {
+                filter: drop-shadow(0 0 30px rgba(100, 200, 255, 0.8))
+                        drop-shadow(0 0 60px rgba(100, 200, 255, 0.6))
+                        drop-shadow(0 0 90px rgba(100, 200, 255, 0.4));
+            }
+            50% {
+                filter: drop-shadow(0 0 40px rgba(150, 220, 255, 1))
+                        drop-shadow(0 0 80px rgba(150, 220, 255, 0.8))
+                        drop-shadow(0 0 120px rgba(100, 200, 255, 0.6));
+            }
+        }
+
+        #logo-overlay.visible {
+            animation: electric-pulse 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Control Sidebar -->
+        <div class="sidebar">
+            <h1>Signal Distillation</h1>
+            <div class="subtitle">Walk down the electric path. Chaos collapses into a corridor of pure signal.</div>
+
+            <!-- Seed Section -->
+            <div class="control-section">
+                <h3>Seed</h3>
+                <input type="number" id="seed-input" class="seed-input" value="12345" onchange="updateSeed()">
+                <div class="seed-controls">
+                    <button class="button secondary" onclick="previousSeed()">← Prev</button>
+                    <button class="button secondary" onclick="nextSeed()">Next →</button>
+                </div>
+                <button class="button tertiary regen-button" onclick="randomSeedAndUpdate()">↻ Random</button>
+            </div>
+
+            <!-- Parameters Section -->
+            <div class="control-section">
+                <h3>Parameters</h3>
+
+                <!-- Data Sources -->
+                <div class="control-group">
+                    <label>Data Sources</label>
+                    <div class="slider-container">
+                        <input type="range" id="dataSourceCount" min="500" max="5000" step="100" value="2000" oninput="updateParam('dataSourceCount', this.value)">
+                        <span class="value-display" id="dataSourceCount-value">2000</span>
+                    </div>
+                </div>
+
+                <!-- Convergence Speed -->
+                <div class="control-group">
+                    <label>Convergence Speed</label>
+                    <div class="slider-container">
+                        <input type="range" id="convergenceSpeed" min="0.001" max="0.01" step="0.001" value="0.003" oninput="updateParam('convergenceSpeed', this.value)">
+                        <span class="value-display" id="convergenceSpeed-value">0.003</span>
+                    </div>
+                </div>
+
+                <!-- Path Complexity -->
+                <div class="control-group">
+                    <label>Path Complexity</label>
+                    <div class="slider-container">
+                        <input type="range" id="pathComplexity" min="0.001" max="0.02" step="0.001" value="0.008" oninput="updateParam('pathComplexity', this.value)">
+                        <span class="value-display" id="pathComplexity-value">0.008</span>
+                    </div>
+                </div>
+
+                <!-- Flicker Intensity -->
+                <div class="control-group">
+                    <label>Initial Chaos</label>
+                    <div class="slider-container">
+                        <input type="range" id="flickerIntensity" min="0" max="255" step="5" value="100" oninput="updateParam('flickerIntensity', this.value)">
+                        <span class="value-display" id="flickerIntensity-value">100</span>
+                    </div>
+                </div>
+
+                <!-- Signal Brightness -->
+                <div class="control-group">
+                    <label>Signal Brightness</label>
+                    <div class="slider-container">
+                        <input type="range" id="signalBrightness" min="100" max="255" step="5" value="220" oninput="updateParam('signalBrightness', this.value)">
+                        <span class="value-display" id="signalBrightness-value">220</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions Section -->
+            <div class="control-section">
+                <h3>Actions</h3>
+                <div class="button-row">
+                    <button class="button" onclick="resetParameters()">Reset</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Canvas Area -->
+        <div class="canvas-area">
+            <div id="canvas-container" style="position: relative;">
+                <div class="loading">Initializing signal distillation...</div>
+
+                <!-- Logo overlay - browser-rendered SVG -->
+                <svg id="logo-overlay" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 368.9196 524.9902">
+        <defs>
+            <style>.cls-1{fill:#fff;}.cls-2{fill:#fff;}.cls-3{fill:url(#linear-gradient);}.cls-4{fill:url(#linear-gradient-2);}</style>
+            <linearGradient id="linear-gradient" x1="-828.1267" y1="432.1994" x2="-827.5965" y2="431.7022" gradientTransform="matrix(217.0818, 217.0818, 217.0818, -217.0818, 86130.9916, 273665.5051)" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#51b448"/>
+                <stop offset="1" stop-color="#5cb447"/>
+            </linearGradient>
+            <linearGradient id="linear-gradient-2" x1="-828.3002" y1="432.2756" x2="-827.5508" y2="431.5312" gradientTransform="matrix(217.0812, 217.0812, 217.0818, -217.0818, 86130.6726, 273664.6861)" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#faa21d"/>
+                <stop offset="1" stop-color="#f37021"/>
+            </linearGradient>
+        </defs>
+        <g id="art">
+            <path class="cls-1" d="M28.3543,448.663a43.8837,43.8837,0,0,1,2.6162-15.63,34.6087,34.6087,0,0,1,6.9785-11.5576,29.9792,29.9792,0,0,1,10.1045-7.124,30.3833,30.3833,0,0,1,12.14-2.4717,25.43,25.43,0,0,1,12.1406,2.6172,37.9745,37.9745,0,0,1,8.3594,5.961l-3.78,4.5068a32.0344,32.0344,0,0,0-7.414-5.3067,19.6442,19.6442,0,0,0-9.16-2.1084,22.2521,22.2521,0,0,0-9.959,2.254A24.0934,24.0934,0,0,0,42.3836,426.2a31.4037,31.4037,0,0,0-5.3789,9.8135,38.4914,38.4914,0,0,0-1.9629,12.6494,40.7531,40.7531,0,0,0,1.8174,12.503,29.9421,29.9421,0,0,0,5.0889,9.7412,22.6037,22.6037,0,0,0,7.9961,6.3242,23.8073,23.8073,0,0,0,10.3945,2.2529,22.8789,22.8789,0,0,0,10.25-2.3262,35.2269,35.2269,0,0,0,8.36-5.67l3.3438,4.3614a41.2127,41.2127,0,0,1-10.0322,6.6884,28.1789,28.1789,0,0,1-12.2119,2.6172,31.4866,31.4866,0,0,1-12.5762-2.4717A29.18,29.18,0,0,1,37.44,475.56a32.753,32.753,0,0,1-6.6875-11.4131A46.161,46.161,0,0,1,28.3543,448.663Z"/>
+            <path class="cls-1" d="M86.7987,465.9638q0-11.483,10.9043-17.5918,10.9027-6.107,34.166-8.7236a40.0546,40.0546,0,0,0-.5088-7.9238,20.72,20.72,0,0,0-2.4717-7.1231,14.2427,14.2427,0,0,0-5.0889-5.0889A16.0487,16.0487,0,0,0,115.44,417.55a29.78,29.78,0,0,0-12.9395,2.7627,55.24,55.24,0,0,0-9.3047,5.379l-2.9082-4.7979q1.8882-1.3081,4.58-2.9072a42.5612,42.5612,0,0,1,5.9609-2.9082,52.5693,52.5693,0,0,1,7.1963-2.253,34.668,34.668,0,0,1,8.1416-.9453,23.3057,23.3057,0,0,1,10.4678,2.1084,18.4051,18.4051,0,0,1,6.833,5.7422,22.9663,22.9663,0,0,1,3.708,8.5049,48.2492,48.2492,0,0,1,1.09,10.541V483.41h-5.379l-.7275-9.0137h-.29a77.4,77.4,0,0,1-11.5586,7.4873,27.72,27.72,0,0,1-13.1573,3.2715,25.6449,25.6449,0,0,1-7.8515-1.1631,19.4085,19.4085,0,0,1-6.47-3.49,15.7537,15.7537,0,0,1-4.4336-5.96A21.127,21.127,0,0,1,86.7987,465.9638Zm6.6875-.291q0,7.5615,4.3623,10.7588a16.97,16.97,0,0,0,10.3222,3.1982,24.6259,24.6259,0,0,0,11.6309-2.9072A69.0969,69.0969,0,0,0,131.869,468.29V444.5917a143.9581,143.9581,0,0,0-18.1006,3.1983,47.4273,47.4273,0,0,0-11.85,4.5068,17.3214,17.3214,0,0,0-6.47,5.961A14.3886,14.3886,0,0,0,93.4862,465.6728Z"/>
+            <path class="cls-1" d="M156.0018,413.624h5.5244l.581,10.7588h.4366a45.289,45.289,0,0,1,10.3955-8.9414,21.7453,21.7453,0,0,1,11.5576-3.5616q8.43,0,12.9395,3.8526a20.9126,20.9126,0,0,1,6.3974,10.3955,69.5677,69.5677,0,0,1,11.8486-10.3955,21.0126,21.0126,0,0,1,11.85-3.8526q20.9355,0,20.9355,26.751V483.41h-6.542V439.5029q0-11.1929-3.78-16.501-3.7821-5.3056-11.7763-5.3066-9.4527,0-20.9356,13.0849v52.63H199.036V439.5029q0-11.1929-3.78-16.501-3.7823-5.3056-11.9219-5.3066-9.4512,0-20.9355,13.0849v52.63h-6.3965Z"/>
+            <path class="cls-1" d="M270.1307,396.76a5.7524,5.7524,0,0,1-4.1436-1.6,5.3837,5.3837,0,0,1-1.6718-4.07,5.5135,5.5135,0,0,1,1.6718-4.2891,6.3844,6.3844,0,0,1,8.2871,0,5.52,5.52,0,0,1,1.6719,4.2891,5.3907,5.3907,0,0,1-1.6719,4.07A5.76,5.76,0,0,1,270.1307,396.76Zm-3.3438,16.8643h6.3965V483.41h-6.3965Z"/>
+            <path class="cls-1" d="M286.994,448.663a44.9755,44.9755,0,0,1,2.5439-15.63,34.2863,34.2863,0,0,1,6.833-11.5576,29.5279,29.5279,0,0,1,21.8809-9.5957,30.0462,30.0462,0,0,1,11.9941,2.4717,29.2585,29.2585,0,0,1,10.0322,7.124,34.3813,34.3813,0,0,1,6.8331,11.5576,45.0456,45.0456,0,0,1,2.5439,15.63,43.8118,43.8118,0,0,1-2.5439,15.4834,34.6276,34.6276,0,0,1-6.8331,11.4131,29.2171,29.2171,0,0,1-10.0322,7.124,30.0633,30.0633,0,0,1-11.9941,2.4717,29.5279,29.5279,0,0,1-21.8809-9.5957,34.53,34.53,0,0,1-6.833-11.4131A43.7443,43.7443,0,0,1,286.994,448.663Zm6.6875,0a39.3262,39.3262,0,0,0,1.89,12.503,31.0336,31.0336,0,0,0,5.1611,9.7412,23.2236,23.2236,0,0,0,7.7784,6.3242,21.4525,21.4525,0,0,0,9.7412,2.2529,21.9074,21.9074,0,0,0,9.8135-2.2529,22.9924,22.9924,0,0,0,7.8505-6.3242,31.0539,31.0539,0,0,0,5.1622-9.7412,39.408,39.408,0,0,0,1.89-12.503,39.9137,39.9137,0,0,0-1.89-12.6494,32.0227,32.0227,0,0,0-5.1622-9.8135,22.675,22.675,0,0,0-7.8505-6.3964,21.9336,21.9336,0,0,0-9.8135-2.254,21.4779,21.4779,0,0,0-9.7412,2.254,22.8991,22.8991,0,0,0-7.7784,6.3964,32.0013,32.0013,0,0,0-5.1611,9.8135A39.8316,39.8316,0,0,0,293.6815,448.663Z"/>
+            <path id="Oval-1-copy-2" class="cls-2" d="M184.46,368.92c101.8743,0,184.46-82.5855,184.46-184.46S286.3341,0,184.46,0,0,82.5855,0,184.46,82.5855,368.92,184.46,368.92Z"/>
+            <circle id="Oval-1-copy" class="cls-3" cx="185.9623" cy="182.9573" r="162.7571"/>
+            <path id="Oval-1-copy-2-2" data-name="Oval-1-copy-2" class="cls-4" d="M300.7,67.2476,184.9269,183.0207,300.7,298.7933a163.1964,163.1964,0,1,1,.3764-231.17"/>
+            <path id="Oval-1-copy-2-3" data-name="Oval-1-copy" class="cls-2" d="M128.92,241.063a80.8008,80.8008,0,1,0,0-114.27A80.8009,80.8009,0,0,0,128.92,241.063Z"/>
+            <rect id="Rectangle-3" class="cls-2" x="226.455" y="92.4957" width="88.243" height="11.6949" transform="translate(9.7109 220.1305) rotate(-45)"/>
+            <rect id="Rectangle-3-copy" class="cls-2" x="260.5003" y="211.6624" width="13.6852" height="102.639" transform="translate(-107.3173 279.1509) rotate(-47)"/>
+        </g>
+    </svg>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════════════════
+        // GENERATIVE ART PARAMETERS
+        // ═══════════════════════════════════════════════════════════════════════
+
+        let params = {
+            seed: 12345,
+            dataSourceCount: 2000,
+            convergenceSpeed: 0.003,
+            pathComplexity: 0.008,
+            flickerIntensity: 100,
+            signalBrightness: 220
+        };
+
+        let defaultParams = {...params};
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // P5.JS SIGNAL DISTILLATION ALGORITHM
+        // ═══════════════════════════════════════════════════════════════════════
+
+        let particles = [];
+        let signalPath = [];
+        let time = 0;
+        let logoShown = false;
+
+        function setup() {
+            let canvas = createCanvas(1200, 1200);
+            canvas.parent('canvas-container');
+
+            initializeSystem();
+
+            document.querySelector('.loading').style.display = 'none';
+        }
+
+        function initializeSystem() {
+            randomSeed(params.seed);
+            noiseSeed(params.seed);
+
+            particles = [];
+            signalPath = [];
+            time = 0;
+            logoShown = false;
+
+            // Hide logo initially
+            let logo = document.getElementById('logo-overlay');
+            if (logo) {
+                logo.classList.remove('visible');
+            }
+
+            // Generate the lightning-like signal path
+            generateSignalPath();
+
+            // Create data source particles
+            for (let i = 0; i < params.dataSourceCount; i++) {
+                particles.push(new DataSource());
+            }
+
+            background(15, 15, 15);
+        }
+
+        function generateSignalPath() {
+            // Create a perspective path that recedes into a vanishing point
+            let pathPoints = [];
+
+            // Vanishing point (deep in the distance)
+            let vanishX = width / 2;
+            let vanishY = height * 0.15;
+
+            // Create path with perspective - from bottom (near) to top (far)
+            for (let depth = 0; depth <= 1; depth += 0.01) {
+                // depth 0 = near (bottom), depth 1 = far (vanishing point)
+
+                // Calculate perspective scale (gets smaller as we go deeper)
+                let scale = 1 - depth * 0.9; // Near is full size, far is 10% size
+
+                // Position along path with noise-based displacement
+                let noiseVal = noise(depth * 5, params.seed * 0.001);
+                let lateralOffset = map(noiseVal, 0, 1, -1, 1) * scale * width * 0.2;
+
+                // Screen position with perspective
+                let screenY = lerp(height * 0.9, vanishY, depth);
+                let screenX = lerp(width / 2 + lateralOffset, vanishX, pow(depth, 1.5));
+
+                pathPoints.push({
+                    x: screenX,
+                    y: screenY,
+                    depth: depth,
+                    scale: scale
+                });
+            }
+
+            // Add electric branches that also respect perspective
+            let branchCount = 15;
+            for (let i = 0; i < branchCount; i++) {
+                let branchStart = random(pathPoints.filter(p => p.depth < 0.7));
+                if (branchStart) {
+                    let branch = createPerspectiveBranch(branchStart);
+                    pathPoints = pathPoints.concat(branch);
+                }
+            }
+
+            signalPath = pathPoints;
+        }
+
+        function createPerspectiveBranch(startPoint) {
+            let branch = [];
+            let x = startPoint.x;
+            let y = startPoint.y;
+            let depth = startPoint.depth;
+            let scale = startPoint.scale;
+
+            // Branch angle (in screen space)
+            let angle = random(-PI/3, PI/3);
+            let branchLength = random(20, 60) * scale; // Shorter branches in distance
+
+            for (let i = 0; i < branchLength; i += 2) {
+                // Move in screen space with noise
+                x += cos(angle) * 2 * scale;
+                y += sin(angle) * 2 * scale;
+
+                // Add organic noise
+                let noiseVal = noise(x * 0.02, y * 0.02, depth * 10);
+                x += map(noiseVal, 0, 1, -2, 2) * scale;
+
+                // Slightly move toward vanishing point
+                depth += 0.002;
+                scale = 1 - depth * 0.9;
+
+                branch.push({
+                    x: x,
+                    y: y,
+                    depth: depth,
+                    scale: scale
+                });
+
+                // Stop if out of bounds or too deep
+                if (x < 0 || x > width || y < height * 0.15 || depth > 1) break;
+            }
+
+            return branch;
+        }
+
+        function draw() {
+            // Fade background for trail effect
+            fill(15, 15, 15, 30);
+            noStroke();
+            rect(0, 0, width, height);
+
+            // Sort particles by depth (far to near) for proper layering
+            particles.sort((a, b) => b.currentDepth - a.currentDepth);
+
+            // Update and display particles
+            for (let p of particles) {
+                p.update();
+                p.display();
+            }
+
+            // Show logo once convergence reaches threshold
+            if (time > 0.6 && !logoShown) {
+                let logo = document.getElementById('logo-overlay');
+                if (logo) {
+                    logo.classList.add('visible');
+                    logoShown = true;
+                }
+            }
+
+            time += params.convergenceSpeed;
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // DATA SOURCE PARTICLE SYSTEM
+        // ═══════════════════════════════════════════════════════════════════════
+
+        class DataSource {
+            constructor() {
+                // Initial random position (full screen)
+                this.startX = random(width);
+                this.startY = random(height);
+                this.x = this.startX;
+                this.y = this.startY;
+
+                // Initial depth (scattered in 3D space)
+                this.startDepth = random(0, 1);
+
+                // Assign a target point on the signal path
+                this.targetPoint = random(signalPath);
+
+                // Initial random color (representing different data streams)
+                this.startColor = color(
+                    random(100, 255),
+                    random(100, 255),
+                    random(100, 255)
+                );
+
+                // Target color (electric blue/white)
+                this.targetColor = color(
+                    random(100, 200),
+                    random(150, 255),
+                    params.signalBrightness
+                );
+
+                this.size = random(2, 6);
+                this.progress = 0;
+                this.currentDepth = this.startDepth;
+            }
+
+            update() {
+                // Calculate progress based on time
+                this.progress = min(1, time);
+
+                // Ease function for smooth convergence
+                let easedProgress = this.easeInOutCubic(this.progress);
+
+                // Interpolate position
+                this.x = lerp(this.startX, this.targetPoint.x, easedProgress);
+                this.y = lerp(this.startY, this.targetPoint.y, easedProgress);
+
+                // Interpolate depth
+                this.currentDepth = lerp(this.startDepth, this.targetPoint.depth, easedProgress);
+            }
+
+            display() {
+                // Calculate perspective scale based on depth
+                let perspectiveScale = 1 - this.currentDepth * 0.9;
+
+                // Calculate current color
+                let currentColor = lerpColor(this.startColor, this.targetColor, this.progress);
+
+                // Add flicker - reduces as convergence increases
+                let flickerAmount = params.flickerIntensity * (1 - this.progress);
+                let flicker = random(-flickerAmount, flickerAmount);
+
+                // Brightness based on convergence and depth
+                // Particles deeper in space are slightly dimmer (atmospheric perspective)
+                let depthBrightness = map(this.currentDepth, 0, 1, 1, 0.6);
+                let brightness = map(this.progress, 0, 1, 100, params.signalBrightness) * depthBrightness;
+
+                // Size affected by both convergence and perspective depth
+                let currentSize = this.size * (1 - this.progress * 0.5) * perspectiveScale;
+
+                fill(
+                    red(currentColor) + flicker,
+                    green(currentColor) + flicker,
+                    blue(currentColor) + flicker,
+                    brightness
+                );
+                noStroke();
+
+                // Draw as small rectangle (representing a screen/monitor)
+                if (this.progress < 0.7) {
+                    rect(this.x, this.y, currentSize * 1.5, currentSize);
+                } else {
+                    // Transition to points for tighter packing
+                    ellipse(this.x, this.y, currentSize * 2);
+                }
+
+                // Add glow for converged particles (more intense in foreground)
+                if (this.progress > 0.8) {
+                    let glowSize = currentSize * 6 * perspectiveScale;
+                    fill(
+                        red(currentColor),
+                        green(currentColor),
+                        blue(currentColor),
+                        brightness * 0.3
+                    );
+                    ellipse(this.x, this.y, glowSize);
+                }
+            }
+
+            easeInOutCubic(t) {
+                return t < 0.5
+                    ? 4 * t * t * t
+                    : 1 - pow(-2 * t + 2, 3) / 2;
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // UI CONTROL HANDLERS
+        // ═══════════════════════════════════════════════════════════════════════
+
+        function updateParam(paramName, value) {
+            params[paramName] = parseFloat(value);
+            document.getElementById(paramName + '-value').textContent = value;
+            initializeSystem();
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // SEED CONTROL FUNCTIONS
+        // ═══════════════════════════════════════════════════════════════════════
+
+        function updateSeedDisplay() {
+            document.getElementById('seed-input').value = params.seed;
+        }
+
+        function updateSeed() {
+            let input = document.getElementById('seed-input');
+            let newSeed = parseInt(input.value);
+            if (newSeed && newSeed > 0) {
+                params.seed = newSeed;
+                initializeSystem();
+            } else {
+                updateSeedDisplay();
+            }
+        }
+
+        function previousSeed() {
+            params.seed = Math.max(1, params.seed - 1);
+            updateSeedDisplay();
+            initializeSystem();
+        }
+
+        function nextSeed() {
+            params.seed = params.seed + 1;
+            updateSeedDisplay();
+            initializeSystem();
+        }
+
+        function randomSeedAndUpdate() {
+            params.seed = Math.floor(Math.random() * 999999) + 1;
+            updateSeedDisplay();
+            initializeSystem();
+        }
+
+        function resetParameters() {
+            params = {...defaultParams};
+
+            // Update UI elements
+            document.getElementById('dataSourceCount').value = params.dataSourceCount;
+            document.getElementById('dataSourceCount-value').textContent = params.dataSourceCount;
+            document.getElementById('convergenceSpeed').value = params.convergenceSpeed;
+            document.getElementById('convergenceSpeed-value').textContent = params.convergenceSpeed;
+            document.getElementById('pathComplexity').value = params.pathComplexity;
+            document.getElementById('pathComplexity-value').textContent = params.pathComplexity;
+            document.getElementById('flickerIntensity').value = params.flickerIntensity;
+            document.getElementById('flickerIntensity-value').textContent = params.flickerIntensity;
+            document.getElementById('signalBrightness').value = params.signalBrightness;
+            document.getElementById('signalBrightness-value').textContent = params.signalBrightness;
+
+            updateSeedDisplay();
+            initializeSystem();
+        }
+
+        window.addEventListener('load', function() {
+            updateSeedDisplay();
+        });
+    </script>
+</body>
+</html>
