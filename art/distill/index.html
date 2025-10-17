@@ -36,21 +36,64 @@
         .container {
             display: flex;
             min-height: 100vh;
-            padding: 20px;
-            gap: 20px;
+            position: relative;
+        }
+
+        /* Hamburger menu button */
+        .hamburger-menu {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            cursor: pointer;
+            z-index: 1001;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            border-radius: 6px;
+            transition: background 0.3s ease;
+        }
+
+        .hamburger-menu:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .hamburger-menu span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .hamburger-menu:hover span {
+            background: rgba(255, 255, 255, 0.8);
         }
 
         /* Sidebar */
         .sidebar {
+            position: fixed;
+            top: 0;
+            left: -360px;
             width: 320px;
-            flex-shrink: 0;
+            height: 100vh;
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             padding: 24px;
-            border-radius: 12px;
             box-shadow: 0 10px 30px rgba(20, 20, 19, 0.1);
             overflow-y: auto;
             overflow-x: hidden;
+            z-index: 1000;
+            transition: left 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .sidebar.open {
+            left: 0;
         }
 
         .sidebar h1 {
@@ -231,26 +274,28 @@
 
         /* Canvas Area */
         .canvas-area {
-            flex: 1;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            min-width: 0;
+            background: #0f0f0f;
         }
 
         #canvas-container {
             width: 100%;
-            max-width: 1000px;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(20, 20, 19, 0.1);
-            background: white;
+            height: 100%;
+            position: relative;
+            background: transparent;
         }
 
         #canvas-container canvas {
             display: block;
             width: 100% !important;
-            height: auto !important;
+            height: 100% !important;
         }
 
         /* Loading State */
@@ -262,41 +307,135 @@
             color: var(--anthropic-mid-gray);
         }
 
-        /* Responsive */
-        @media (max-width: 600px) {
-            .container {
-                flex-direction: column;
-            }
+        /* Overlay for sidebar */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
 
+        .sidebar-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
             .sidebar {
                 width: 100%;
+                left: -100%;
             }
 
-            .canvas-area {
-                padding: 20px;
+            .sidebar.open {
+                left: 0;
+            }
+
+            /* Tagline - positioned in upper-middle area */
+            #tagline-text {
+                top: 35%;
+                font-size: 14px;
+                white-space: normal;
+                padding: 0 20px;
+                line-height: 1.5;
+                max-width: 95vw;
+                width: max-content;
+            }
+
+            /* Subtext - positioned below tagline */
+            #subtext {
+                top: 45%;
+                font-size: 12px;
+                white-space: normal;
+                padding: 0 20px;
+                line-height: 1.4;
+                max-width: 95vw;
+                width: max-content;
+            }
+
+            /* Logo - smaller and positioned below subtext at bottom */
+            #logo-link {
+                bottom: 8%;
+            }
+
+            #logo-overlay {
+                width: 90px;
             }
         }
 
-        /* Logo overlay */
-        #logo-overlay {
+        @media (max-width: 480px) {
+            /* Tagline - positioned in upper area */
+            #tagline-text {
+                top: 32%;
+                font-size: 12px;
+                padding: 0 25px;
+                max-width: 95vw;
+                width: max-content;
+            }
+
+            /* Subtext - positioned below tagline */
+            #subtext {
+                top: 42%;
+                font-size: 10px;
+                padding: 0 25px;
+                max-width: 95vw;
+                width: max-content;
+            }
+
+            /* Logo - very small at bottom of screen */
+            #logo-link {
+                bottom: 5%;
+            }
+
+            #logo-overlay {
+                width: 70px;
+            }
+
+            /* Hamburger menu - slightly smaller */
+            .hamburger-menu {
+                width: 36px;
+                height: 36px;
+                top: 15px;
+                left: 15px;
+            }
+
+            .hamburger-menu span {
+                width: 20px;
+            }
+        }
+
+        /* Logo link wrapper */
+        #logo-link {
             position: absolute;
-            width: 200px;
-            height: auto;
             left: 50%;
-            bottom: 15%;
+            bottom: 10%;
             transform: translate(-50%, 0) scale(0);
             opacity: 0;
             pointer-events: none;
-            filter: drop-shadow(0 0 30px rgba(100, 200, 255, 0.8))
-                    drop-shadow(0 0 60px rgba(100, 200, 255, 0.6))
-                    drop-shadow(0 0 90px rgba(100, 200, 255, 0.4));
             transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55),
                         opacity 0.6s ease-out;
         }
 
-        #logo-overlay.visible {
+        #logo-link.visible {
             transform: translate(-50%, 0) scale(1);
             opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Logo overlay */
+        #logo-overlay {
+            display: block;
+            width: 200px;
+            height: auto;
+            filter: drop-shadow(0 0 30px rgba(100, 200, 255, 0.8))
+                    drop-shadow(0 0 60px rgba(100, 200, 255, 0.6))
+                    drop-shadow(0 0 90px rgba(100, 200, 255, 0.4));
         }
 
         /* Electric arc animation */
@@ -313,13 +452,77 @@
             }
         }
 
-        #logo-overlay.visible {
+        #logo-link.visible #logo-overlay {
             animation: electric-pulse 2s ease-in-out infinite;
+        }
+
+        /* Tagline text */
+        #tagline-text {
+            position: absolute;
+            left: 50%;
+            top: calc(36% + 3em);
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 0;
+            pointer-events: none;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            font-size: 18px;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 20px rgba(100, 200, 255, 0.8),
+                         0 0 40px rgba(100, 200, 255, 0.6);
+            line-height: 1.4;
+            transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+                        opacity 0.6s ease-out;
+            max-width: 90vw;
+            text-align: center;
+        }
+
+        #tagline-text.visible {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
+        /* Subtext */
+        #subtext {
+            position: absolute;
+            left: 50%;
+            top: calc(40% + 5em);
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 0;
+            pointer-events: none;
+            color: rgba(255, 255, 255, 0.8);
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            font-weight: 300;
+            letter-spacing: 0.3px;
+            text-shadow: 0 0 15px rgba(100, 200, 255, 0.6),
+                         0 0 30px rgba(100, 200, 255, 0.4);
+            line-height: 1.5;
+            transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0.2s,
+                        opacity 0.6s ease-out 0.2s;
+            max-width: 90vw;
+            text-align: center;
+        }
+
+        #subtext.visible {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Hamburger menu button -->
+        <button class="hamburger-menu" onclick="toggleSidebar()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <!-- Sidebar overlay -->
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
         <!-- Control Sidebar -->
         <div class="sidebar">
             <h1>Signal Distillation</h1>
@@ -400,8 +603,16 @@
             <div id="canvas-container" style="position: relative;">
                 <div class="loading">Initializing signal distillation...</div>
 
-                <!-- Logo overlay - browser-rendered SVG -->
-                <svg id="logo-overlay" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 368.9196 524.9902">
+                <!-- Tagline text -->
+                <div id="tagline-text">Digital Transformation<br>of Physical Workflows</div>
+
+                <!-- Subtext -->
+                <div id="subtext">Visual AI for policy compliance<br>using standard IP cameras</div>
+
+                <!-- Logo link wrapper -->
+                <a id="logo-link" href="https://camio.com" target="_blank" rel="noopener noreferrer">
+                    <!-- Logo overlay - browser-rendered SVG -->
+                    <svg id="logo-overlay" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 368.9196 524.9902">
         <defs>
             <style>.cls-1{fill:#fff;}.cls-2{fill:#fff;}.cls-3{fill:url(#linear-gradient);}.cls-4{fill:url(#linear-gradient-2);}</style>
             <linearGradient id="linear-gradient" x1="-828.1267" y1="432.1994" x2="-827.5965" y2="431.7022" gradientTransform="matrix(217.0818, 217.0818, 217.0818, -217.0818, 86130.9916, 273665.5051)" gradientUnits="userSpaceOnUse">
@@ -427,6 +638,7 @@
             <rect id="Rectangle-3-copy" class="cls-2" x="260.5003" y="211.6624" width="13.6852" height="102.639" transform="translate(-107.3173 279.1509) rotate(-47)"/>
         </g>
     </svg>
+                </a>
             </div>
         </div>
     </div>
@@ -455,14 +667,23 @@
         let signalPath = [];
         let time = 0;
         let logoShown = false;
+        let continuousMode = false;
+        let spawnTimer = 0;
 
         function setup() {
-            let canvas = createCanvas(1200, 1200);
+            let canvas = createCanvas(windowWidth, windowHeight);
             canvas.parent('canvas-container');
 
             initializeSystem();
 
             document.querySelector('.loading').style.display = 'none';
+        }
+
+        function windowResized() {
+            resizeCanvas(windowWidth, windowHeight);
+            // Re-initialize the entire system to regenerate the path and particles
+            // for the new window dimensions
+            initializeSystem();
         }
 
         function initializeSystem() {
@@ -473,17 +694,27 @@
             signalPath = [];
             time = 0;
             logoShown = false;
+            continuousMode = false;
+            spawnTimer = 0;
 
-            // Hide logo initially
-            let logo = document.getElementById('logo-overlay');
-            if (logo) {
-                logo.classList.remove('visible');
+            // Hide logo, tagline, and subtext initially
+            let logoLink = document.getElementById('logo-link');
+            let tagline = document.getElementById('tagline-text');
+            let subtext = document.getElementById('subtext');
+            if (logoLink) {
+                logoLink.classList.remove('visible');
+            }
+            if (tagline) {
+                tagline.classList.remove('visible');
+            }
+            if (subtext) {
+                subtext.classList.remove('visible');
             }
 
             // Generate the lightning-like signal path
             generateSignalPath();
 
-            // Create data source particles
+            // Create initial data source particles
             for (let i = 0; i < params.dataSourceCount; i++) {
                 particles.push(new DataSource());
             }
@@ -497,22 +728,29 @@
 
             // Vanishing point (deep in the distance)
             let vanishX = width / 2;
-            let vanishY = height * 0.15;
+            let vanishY = height * 0.33;
 
-            // Create path with perspective - from bottom (near) to top (far)
-            for (let depth = 0; depth <= 1; depth += 0.01) {
-                // depth 0 = near (bottom), depth 1 = far (vanishing point)
+            // Create smooth river-like path with perspective
+            // Start from negative depth to extend beyond bottom edge
+            for (let depth = -0.15; depth <= 1; depth += 0.005) {
+                // depth -0.15 = beyond bottom edge, depth 1 = far (vanishing point)
 
                 // Calculate perspective scale (gets smaller as we go deeper)
-                let scale = 1 - depth * 0.9; // Near is full size, far is 10% size
+                let scale = 1 - depth * 0.9;
 
-                // Position along path with noise-based displacement
-                let noiseVal = noise(depth * 5, params.seed * 0.001);
-                let lateralOffset = map(noiseVal, 0, 1, -1, 1) * scale * width * 0.2;
+                // Smooth river-like winding using multiple octaves of noise
+                let noiseVal1 = noise(depth * 3, params.seed * 0.001);
+                let noiseVal2 = noise(depth * 8, params.seed * 0.002 + 100);
 
-                // Screen position with perspective
-                let screenY = lerp(height * 0.9, vanishY, depth);
-                let screenX = lerp(width / 2 + lateralOffset, vanishX, pow(depth, 1.5));
+                // Combine noise at different frequencies for natural winding
+                let lateralOffset = (
+                    map(noiseVal1, 0, 1, -1, 1) * 0.7 +
+                    map(noiseVal2, 0, 1, -1, 1) * 0.3
+                ) * scale * width * 0.25;
+
+                // Screen position with perspective - extend beyond bottom
+                let screenY = lerp(height + 100, vanishY, (depth + 0.15) / 1.15);
+                let screenX = lerp(width / 2 + lateralOffset, vanishX, pow((depth + 0.15) / 1.15, 1.2));
 
                 pathPoints.push({
                     x: screenX,
@@ -520,16 +758,6 @@
                     depth: depth,
                     scale: scale
                 });
-            }
-
-            // Add electric branches that also respect perspective
-            let branchCount = 15;
-            for (let i = 0; i < branchCount; i++) {
-                let branchStart = random(pathPoints.filter(p => p.depth < 0.7));
-                if (branchStart) {
-                    let branch = createPerspectiveBranch(branchStart);
-                    pathPoints = pathPoints.concat(branch);
-                }
             }
 
             signalPath = pathPoints;
@@ -579,25 +807,194 @@
             noStroke();
             rect(0, 0, width, height);
 
+            // Draw the flowing electric river
+            drawElectricRiver();
+
             // Sort particles by depth (far to near) for proper layering
             particles.sort((a, b) => b.currentDepth - a.currentDepth);
 
             // Update and display particles
-            for (let p of particles) {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
                 p.update();
                 p.display();
+
+                // Remove particles that have flowed past the bottom
+                if (continuousMode && p.currentDepth < -0.2) {
+                    particles.splice(i, 1);
+                }
             }
 
             // Show logo once convergence reaches threshold
             if (time > 0.6 && !logoShown) {
-                let logo = document.getElementById('logo-overlay');
-                if (logo) {
-                    logo.classList.add('visible');
-                    logoShown = true;
+                let logoLink = document.getElementById('logo-link');
+                let tagline = document.getElementById('tagline-text');
+                let subtext = document.getElementById('subtext');
+                if (logoLink) {
+                    logoLink.classList.add('visible');
+                }
+                if (tagline) {
+                    tagline.classList.add('visible');
+                }
+                if (subtext) {
+                    subtext.classList.add('visible');
+                }
+                logoShown = true;
+            }
+
+            // Switch to continuous mode after logo appears
+            if (time >= 1.0 && !continuousMode) {
+                continuousMode = true;
+                time = 1.0; // Cap time at 1.0
+            }
+
+            // In continuous mode, spawn new particles in the chaos cloud
+            if (continuousMode) {
+                spawnTimer += deltaTime;
+
+                // Spawn particles continuously in the distant chaos cloud
+                if (spawnTimer > 10) { // Spawn every 10ms for denser cloud
+                    for (let i = 0; i < 30; i++) {
+                        particles.push(new ContinuousParticle());
+                    }
+                    spawnTimer = 0;
+                }
+            } else {
+                time += params.convergenceSpeed;
+            }
+        }
+
+        function drawElectricRiver() {
+            // Only draw when particles have converged enough to form the river
+            let riverProgress = continuousMode ? 1.0 : constrain(time - 0.2, 0, 1);
+            if (riverProgress < 0.1) return;
+
+            // Continuous flow animation
+            let flowTime = frameCount * 0.03;
+
+            // Calculate how much of the river is visible (grows as distillation progresses)
+            let visibleDepthRange = continuousMode ? -0.15 : map(riverProgress, 0.1, 1.0, 1.0, -0.15);
+
+            // Count particles at each depth to determine river width
+            let depthDensity = new Array(signalPath.length).fill(0);
+            for (let particle of particles) {
+                if (particle.currentDepth === undefined) continue;
+
+                // Find closest path point
+                for (let i = 0; i < signalPath.length; i++) {
+                    let pathDepth = signalPath[i].depth;
+                    if (abs(pathDepth - particle.currentDepth) < 0.05) {
+                        // Weight by convergence progress
+                        let weight = particle.convergenceProgress || particle.progress || 0;
+                        depthDensity[i] += weight;
+                        break;
+                    }
                 }
             }
 
-            time += params.convergenceSpeed;
+            noFill();
+
+            // Main river glow layer
+            for (let layer = 0; layer < 3; layer++) {
+                let glowSize = layer + 1;
+                let alpha = map(layer, 0, 2, 60, 15);
+
+                for (let i = 0; i < signalPath.length - 1; i++) {
+                    let p1 = signalPath[i];
+                    let p2 = signalPath[i + 1];
+
+                    // Only draw visible sections
+                    if (p1.depth > visibleDepthRange) continue;
+
+                    // Calculate width based on collected particle density
+                    let density = depthDensity[i];
+                    let maxDensity = continuousMode ? 50 : params.dataSourceCount * 0.02;
+                    let densityFactor = constrain(density / maxDensity, 0.05, 1);
+
+                    // Base width grows with perspective and density
+                    let perspectiveScale = (1 - p1.depth * 0.92);
+                    let baseWidth = perspectiveScale * 90 * densityFactor;
+
+                    // Turbulent flow animation - waves moving from top to bottom
+                    let flow1 = sin(p1.depth * 12 - flowTime * 1.2);
+                    let flow2 = sin(p1.depth * 20 - flowTime * 1.8);
+                    let flow3 = sin(p1.depth * 35 - flowTime * 2.5);
+
+                    // Combined turbulence
+                    let turbulence = flow1 * 0.5 + flow2 * 0.3 + flow3 * 0.2;
+
+                    // Pulsing width
+                    let width = baseWidth * (1 + turbulence * 0.3) * glowSize;
+
+                    // Flowing brightness
+                    let brightness = 150 + flow1 * 70;
+
+                    // Electric blue color with turbulent variation
+                    let r = constrain(100 + turbulence * 80, 60, 200);
+                    let g = constrain(180 + flow1 * 50, 140, 240);
+
+                    stroke(r, g, 255, alpha * densityFactor);
+                    strokeWeight(width);
+                    line(p1.x, p1.y, p2.x, p2.y);
+                }
+            }
+
+            // Bright core channel
+            for (let i = 0; i < signalPath.length - 1; i++) {
+                let p1 = signalPath[i];
+                let p2 = signalPath[i + 1];
+
+                if (p1.depth > visibleDepthRange) continue;
+
+                // Density-based core width
+                let density = depthDensity[i];
+                let maxDensity = continuousMode ? 50 : params.dataSourceCount * 0.02;
+                let densityFactor = constrain(density / maxDensity, 0.05, 1);
+
+                // Core energy flow
+                let coreFlow = sin(p1.depth * 10 - flowTime * 2);
+                let perspectiveScale = (1 - p1.depth * 0.92);
+                let baseWidth = perspectiveScale * 30 * densityFactor;
+                let width = baseWidth * (1 + coreFlow * 0.4);
+
+                let brightness = 200 + coreFlow * 55;
+
+                stroke(brightness, 235, 255, 150 * densityFactor);
+                strokeWeight(width);
+                line(p1.x, p1.y, p2.x, p2.y);
+            }
+
+            // Fast-moving bright highlights (like energy rapids)
+            for (let i = 0; i < signalPath.length - 1; i++) {
+                let p1 = signalPath[i];
+                let p2 = signalPath[i + 1];
+
+                if (p1.depth > visibleDepthRange) continue;
+
+                let density = depthDensity[i];
+                let maxDensity = continuousMode ? 50 : params.dataSourceCount * 0.02;
+                let densityFactor = constrain(density / maxDensity, 0.05, 1);
+
+                // Only show highlights where there's enough density
+                if (densityFactor < 0.3) continue;
+
+                // Multiple highlight streams at different speeds
+                let highlight1 = sin(p1.depth * 8 - flowTime * 3);
+                let highlight2 = sin(p1.depth * 12 - flowTime * 4.5);
+
+                if (highlight1 > 0.6 || highlight2 > 0.65) {
+                    let intensity = max(
+                        (highlight1 > 0.6 ? (highlight1 - 0.6) / 0.4 : 0),
+                        (highlight2 > 0.65 ? (highlight2 - 0.65) / 0.35 : 0)
+                    );
+
+                    let perspectiveScale = (1 - p1.depth * 0.92);
+                    let width = perspectiveScale * 15 * densityFactor;
+                    stroke(255, 255, 255, 255 * intensity * densityFactor);
+                    strokeWeight(width);
+                    line(p1.x, p1.y, p2.x, p2.y);
+                }
+            }
         }
 
         // ═══════════════════════════════════════════════════════════════════════
@@ -708,6 +1105,174 @@
         }
 
         // ═══════════════════════════════════════════════════════════════════════
+        // CONTINUOUS PARTICLE SYSTEM (for infinite highway effect)
+        // ═══════════════════════════════════════════════════════════════════════
+
+        class ContinuousParticle {
+            constructor() {
+                // Start in the chaos cloud at the top of the screen
+                // Depth beyond the vanishing point
+                this.currentDepth = random(1.0, 1.4);
+
+                // Spread across entire top third of screen (massive chaos cloud)
+                let cloudWidth = width * 1.0; // Full width
+                let cloudHeight = height * 0.33; // Cloud fills top 33% of screen
+
+                this.startX = width / 2 + random(-cloudWidth/2, cloudWidth/2);
+                this.startY = random(0, cloudHeight);
+
+                this.x = this.startX;
+                this.y = this.startY;
+
+                // Target the vanishing point (deepest point in the path)
+                let vanishingPoints = signalPath.filter(p => p.depth >= 0.95);
+                if (vanishingPoints.length > 0) {
+                    this.targetPoint = random(vanishingPoints);
+                } else {
+                    this.targetPoint = signalPath[signalPath.length - 1];
+                }
+
+                // Random initial color
+                this.startColor = color(
+                    random(100, 255),
+                    random(100, 255),
+                    random(100, 255)
+                );
+
+                // Electric target color
+                this.targetColor = color(
+                    random(100, 200),
+                    random(150, 255),
+                    params.signalBrightness
+                );
+
+                // Larger particles in the chaos cloud
+                this.size = random(8, 16);
+
+                // Local progress for convergence (0 = chaotic, 1 = converged)
+                this.convergenceProgress = 0;
+
+                // Track when this particle was created
+                this.birthTime = millis();
+
+                // Movement speed toward viewer
+                this.speed = params.convergenceSpeed * random(0.8, 1.2);
+            }
+
+            update() {
+                // Two-phase lifecycle:
+                // Phase 1: Converge from chaos cloud to vanishing point (time-based, like initial distillation)
+                // Phase 2: Flow from vanishing point down the river (depth-based movement)
+
+                if (this.convergenceProgress < 1.0) {
+                    // PHASE 1: Time-based convergence (SAME as initial DataSource particles)
+                    // Calculate elapsed time since birth
+                    let elapsedTime = (millis() - this.birthTime) / 1000.0; // in seconds
+
+                    // Use time-based progression similar to initial distillation
+                    // Very slow speed to keep particles visible in chaos cloud longer
+                    this.convergenceProgress = min(1.0, elapsedTime * this.speed * 30);
+
+                    let easedProgress = this.easeInOutCubic(this.convergenceProgress);
+
+                    // Move toward vanishing point (same interpolation as DataSource)
+                    this.x = lerp(this.startX, this.targetPoint.x, easedProgress);
+                    this.y = lerp(this.startY, this.targetPoint.y, easedProgress);
+
+                    // Depth approaches vanishing point depth
+                    this.currentDepth = lerp(1.4, this.targetPoint.depth, easedProgress);
+                } else {
+                    // PHASE 2: Flowing down the river toward viewer
+                    this.currentDepth -= this.speed * 0.05; // Flow speed down the river
+
+                    // Find path point at current depth and follow it
+                    let closestPoint = this.targetPoint;
+                    let minDist = Infinity;
+                    for (let p of signalPath) {
+                        let dist = abs(p.depth - this.currentDepth);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            closestPoint = p;
+                        }
+                    }
+                    this.x = closestPoint.x;
+                    this.y = closestPoint.y;
+                }
+            }
+
+            display() {
+                // Calculate perspective scale
+                let perspectiveScale = max(0.01, 1 - this.currentDepth * 0.9);
+
+                // Color interpolation - fully converged once reaching vanishing point
+                let currentColor = lerpColor(this.startColor, this.targetColor, this.convergenceProgress);
+
+                // Flicker reduces as convergence increases
+                let flickerAmount = params.flickerIntensity * (1 - this.convergenceProgress);
+                let flicker = random(-flickerAmount, flickerAmount);
+
+                // Brightness based on phase - much brighter in chaos cloud
+                let baseBrightness = this.convergenceProgress < 1.0 ? 255 : params.signalBrightness;
+                let depthBrightness = map(this.currentDepth, -0.2, 1.4, 1.3, 0.7);
+                let brightness = map(this.convergenceProgress, 0, 1, baseBrightness, params.signalBrightness) * depthBrightness;
+
+                // Size - large in chaos, shrink dramatically when distilled
+                let currentSize;
+                if (this.convergenceProgress < 1.0) {
+                    // Large in chaos cloud
+                    currentSize = this.size * (1 - this.convergenceProgress * 0.3) * perspectiveScale;
+                } else {
+                    // Much smaller when flowing in river
+                    currentSize = this.size * 0.4 * perspectiveScale;
+                }
+
+                fill(
+                    red(currentColor) + flicker,
+                    green(currentColor) + flicker,
+                    blue(currentColor) + flicker,
+                    brightness
+                );
+                noStroke();
+
+                // Draw as larger rectangle in chaos cloud, smaller ellipse when flowing
+                if (this.convergenceProgress < 1.0) {
+                    rect(this.x, this.y, currentSize * 1.8, currentSize * 1.2);
+                } else {
+                    ellipse(this.x, this.y, currentSize * 2);
+                }
+
+                // Add glow - much stronger in chaos cloud phase
+                if (this.convergenceProgress < 1.0) {
+                    // Still converging - very bright glow
+                    let glowSize = currentSize * 8;
+                    fill(
+                        red(currentColor),
+                        green(currentColor),
+                        blue(currentColor),
+                        brightness * 0.7
+                    );
+                    ellipse(this.x, this.y, glowSize);
+                } else if (this.convergenceProgress >= 1.0) {
+                    // Flowing down river - subtle glow
+                    let glowSize = currentSize * 3 * perspectiveScale;
+                    fill(
+                        red(currentColor),
+                        green(currentColor),
+                        blue(currentColor),
+                        brightness * 0.2
+                    );
+                    ellipse(this.x, this.y, glowSize);
+                }
+            }
+
+            easeInOutCubic(t) {
+                return t < 0.5
+                    ? 4 * t * t * t
+                    : 1 - pow(-2 * t + 2, 3) / 2;
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
         // UI CONTROL HANDLERS
         // ═══════════════════════════════════════════════════════════════════════
 
@@ -776,6 +1341,17 @@
         window.addEventListener('load', function() {
             updateSeedDisplay();
         });
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // SIDEBAR TOGGLE
+        // ═══════════════════════════════════════════════════════════════════════
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('visible');
+        }
     </script>
 </body>
 </html>
