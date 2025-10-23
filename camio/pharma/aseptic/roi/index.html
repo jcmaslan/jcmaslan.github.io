@@ -398,13 +398,22 @@
 
                 <div class="input-category">Batch Impact Estimates (Probability-Weighted)</div>
 
+                <div class="warning-box" style="margin-bottom: 20px;">
+                    <h4>Two Independent Value Categories</h4>
+                    <p><strong>Full Batch Savings:</strong> Contamination investigations (EM excursions, interventions, glove integrity) where video evidence enables batch release through:</p>
+                    <p style="margin-left: 15px; margin-top: 5px;">• <strong>Immediate release:</strong> Video proves contamination occurred outside product exposure timeframe (e.g., plate touched during retrieval)</p>
+                    <p style="margin-left: 15px; margin-top: 5px;">• <strong>Accelerated over-sampling release:</strong> Video identifies exact contamination timeframe, enabling targeted over-sampling strategy instead of batch rejection</p>
+                    <p style="margin-top: 8px;"><strong>Partial Batch Savings:</strong> Equipment deviations (mechanical malfunctions, filling needle issues) where video identifies only affected units, allowing partial batch release.</p>
+                    <p style="margin-top: 8px; font-style: italic;">These are separate event types with independent probabilities and should not be considered double-counting.</p>
+                </div>
+
                 <div class="input-group">
-                    <label for="batchesSavedPerYear">Batches Saved From Rejection</label>
+                    <label for="batchesSavedPerYear">Full Batches Saved From Rejection</label>
                     <div class="input-wrapper">
                         <input type="number" id="batchesSavedPerYear" value="0.5" min="0" max="5" step="0.5">
                         <span class="unit">per year</span>
                     </div>
-                    <div class="help-text">Conservative: 0.5 (50% chance of 1 batch). Well-run facilities: 0-1 batch/year.</div>
+                    <div class="help-text">Contamination investigations where video enables immediate release or accelerated over-sampling release. Conservative: 0.5 (50% chance of 1 batch/year).</div>
                 </div>
 
                 <div class="input-group">
@@ -413,16 +422,16 @@
                         <input type="number" id="partialBatchSavings" value="0.5" min="0" max="0.9" step="0.1">
                         <span class="unit">% of batch</span>
                     </div>
-                    <div class="help-text">50% = save 50% of batch by identifying only affected units</div>
+                    <div class="help-text">% of batch saved by scoping equipment malfunction to affected units only</div>
                 </div>
 
                 <div class="input-group">
-                    <label for="partialSavingsEvents">Partial Savings Events Per Year</label>
+                    <label for="partialSavingsEvents">Equipment Deviation Events Per Year</label>
                     <div class="input-wrapper">
                         <input type="number" id="partialSavingsEvents" value="0.5" min="0" max="5" step="0.5">
                         <span class="unit">events/year</span>
                     </div>
-                    <div class="help-text">Conservative: 0.5 (1 event every 2 years)</div>
+                    <div class="help-text">Mechanical issues where video enables partial batch release. Conservative: 0.5 (1 event every 2 years)</div>
                 </div>
 
                 <div class="input-category">Working Capital (Balance Sheet Impact Only)</div>
@@ -478,11 +487,11 @@
                 <div class="breakdown">
                     <h4>P&L Impact Breakdown</h4>
                     <div class="breakdown-item">
-                        <span class="label">Batches Saved from Rejection</span>
+                        <span class="label">Full Batches Saved (Contamination)</span>
                         <span class="value" id="batchesSavedValue">$0</span>
                     </div>
                     <div class="breakdown-item">
-                        <span class="label">Equipment Deviation Partial Savings</span>
+                        <span class="label">Partial Batches Saved (Equipment Deviation)</span>
                         <span class="value" id="partialSavingsValue">$0</span>
                     </div>
                     <div class="breakdown-item">
@@ -748,10 +757,15 @@
 **${formatCurrency(totalPLImpact)}**
 
 ## P&L Impact Breakdown
-- **Batches Saved from Rejection:** ${formatCurrency(batchesSaved)} (${inputs.batchesSavedPerYear} batches probability-weighted)
-- **Equipment Deviation Partial Savings:** ${formatCurrency(partialSavings)} (${inputs.partialSavingsEvents} events probability-weighted)
+- **Full Batches Saved (Contamination):** ${formatCurrency(batchesSaved)} (${inputs.batchesSavedPerYear} batches probability-weighted)
+  - Immediate release: Video proves contamination outside product exposure timeframe
+  - Accelerated over-sampling: Video identifies contamination timeframe, enabling targeted testing strategy
+- **Partial Batches Saved (Equipment Deviation):** ${formatCurrency(partialSavings)} (${inputs.partialSavingsEvents} events probability-weighted)
+  - Equipment malfunctions where video identifies only affected units
 - **Investigation Labor Savings:** ${formatCurrency(laborSavings)} (${inputs.investigationTimeReduction}% time reduction)
 - **Total Year 1 P&L Impact:** ${formatCurrency(totalPLImpact)}
+
+**Note:** Full batch and partial batch savings represent independent event types (contamination vs equipment deviation) and are not double-counting.
 
 ## Annual Camio Cost
 - **Camio Annual Recurring Fee:** ${formatCurrency(systemCost)}
