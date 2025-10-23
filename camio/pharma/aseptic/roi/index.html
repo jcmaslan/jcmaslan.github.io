@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camio ROI Calculator - Aseptic Manufacturing</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+        }
+
+        .inputs-section {
+            padding: 30px;
+            background: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+        }
+
+        .results-section {
+            padding: 30px;
+            background: white;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-category {
+            font-size: 16px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 15px;
+            margin-top: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: #495057;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper input,
+        .input-wrapper select {
+            flex: 1;
+            padding: 10px 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .input-wrapper input:focus,
+        .input-wrapper select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .input-wrapper .unit {
+            margin-left: 10px;
+            font-size: 14px;
+            color: #6c757d;
+            min-width: 80px;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .result-card h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .result-card .value {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .result-card .subtitle {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .breakdown {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .breakdown h4 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #495057;
+        }
+
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .breakdown-item:last-child {
+            border-bottom: none;
+            font-weight: 600;
+            font-size: 16px;
+            color: #667eea;
+        }
+
+        .breakdown-item .label {
+            color: #495057;
+        }
+
+        .breakdown-item .value {
+            font-weight: 600;
+            color: #212529;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .metric-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+        }
+
+        .metric-box .label {
+            font-size: 12px;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+
+        .metric-box .value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #212529;
+        }
+
+        .reset-button {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+
+        .reset-button:hover {
+            background: #5a6268;
+        }
+
+        .copy-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .copy-button:hover {
+            background: #5568d3;
+        }
+
+        .copy-button.copied {
+            background: #28a745;
+        }
+
+        .assumptions-footnote {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 15px;
+            font-size: 12px;
+            color: #6c757d;
+            line-height: 1.6;
+            margin-top: 15px;
+        }
+
+        .assumptions-footnote h5 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 10px;
+        }
+
+        .assumptions-footnote .assumption-item {
+            margin-bottom: 5px;
+        }
+
+        .footer-note {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            font-size: 13px;
+            color: #6c757d;
+            text-align: center;
+        }
+
+        @media (max-width: 968px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+
+            .inputs-section {
+                border-right: none;
+                border-bottom: 1px solid #dee2e6;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Camio ROI Calculator</h1>
+            <p>Aseptic Manufacturing - Batch Release Acceleration</p>
+        </div>
+
+        <div class="content">
+            <!-- INPUTS SECTION -->
+            <div class="inputs-section">
+                <h2 class="section-title">Your Facility Parameters</h2>
+
+                <div class="input-category">Facility Size</div>
+
+                <div class="input-group">
+                    <label for="asepticLines">Number of Aseptic Filling Lines</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="asepticLines" value="4" min="1" max="20" step="1">
+                        <span class="unit">lines</span>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="batchesPerYear">Total Batches Per Year</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="batchesPerYear" value="300" min="50" max="1000" step="10">
+                        <span class="unit">batches/year</span>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="avgBatchValue">Average Batch Value</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="avgBatchValue" value="1000000" min="100000" max="10000000" step="100000">
+                        <span class="unit">$/batch</span>
+                    </div>
+                    <div class="help-text">Typical range: $500K - $5M for sterile injectables/biologics</div>
+                </div>
+
+                <div class="input-category">Investigation Parameters</div>
+
+                <div class="input-group">
+                    <label for="investigationsPerYear">Deviation Investigations Requiring Video Review</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="investigationsPerYear" value="15" min="5" max="50" step="1">
+                        <span class="unit">per year</span>
+                    </div>
+                    <div class="help-text">EM excursions, interventions, glove integrity issues, etc.</div>
+                </div>
+
+                <div class="input-group">
+                    <label for="hoursPerInvestigation">Hours Per Investigation (Manual Review)</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="hoursPerInvestigation" value="40" min="10" max="100" step="5">
+                        <span class="unit">hours</span>
+                    </div>
+                    <div class="help-text">SAP research average: 40 hours per batch release decision</div>
+                </div>
+
+                <div class="input-group">
+                    <label for="loadedLaborRate">Loaded Labor Rate (Quality Team)</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="loadedLaborRate" value="150" min="100" max="300" step="10">
+                        <span class="unit">$/hour</span>
+                    </div>
+                </div>
+
+                <div class="input-category">Batch Impact Estimates</div>
+
+                <div class="input-group">
+                    <label for="batchesSavedPerYear">Batches Saved From Rejection (Conservative)</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="batchesSavedPerYear" value="2" min="0" max="10" step="1">
+                        <span class="unit">per year</span>
+                    </div>
+                    <div class="help-text">EM excursions, interventions proven safe with video evidence</div>
+                </div>
+
+                <div class="input-group">
+                    <label for="partialBatchSavings">Equipment Deviation Partial Batch Savings</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="partialBatchSavings" value="0.7" min="0" max="1" step="0.1">
+                        <span class="unit">% of batch</span>
+                    </div>
+                    <div class="help-text">70% = save 70% of batch by identifying only affected units</div>
+                </div>
+
+                <div class="input-group">
+                    <label for="partialSavingsEvents">Partial Savings Events Per Year</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="partialSavingsEvents" value="1" min="0" max="10" step="1">
+                        <span class="unit">events/year</span>
+                    </div>
+                </div>
+
+                <div class="input-category">Working Capital</div>
+
+                <div class="input-group">
+                    <label for="avgHoldValue">Average Batch Value in "Hold" Status</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="avgHoldValue" value="30000000" min="5000000" max="100000000" step="5000000">
+                        <span class="unit">$</span>
+                    </div>
+                    <div class="help-text">Without Camio (baseline)</div>
+                </div>
+
+                <div class="input-group">
+                    <label for="avgHoldValueWithCamio">Average Batch Value in "Hold" With Camio</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="avgHoldValueWithCamio" value="20000000" min="5000000" max="100000000" step="5000000">
+                        <span class="unit">$</span>
+                    </div>
+                    <div class="help-text">After faster investigations</div>
+                </div>
+
+                <div class="input-group">
+                    <label for="wacc">Cost of Capital (WACC)</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="wacc" value="8" min="4" max="15" step="0.5">
+                        <span class="unit">%</span>
+                    </div>
+                    <div class="help-text">Typical pharma WACC: 7-10%</div>
+                </div>
+
+                <div class="input-category">Camio Investment</div>
+
+                <div class="input-group">
+                    <label for="systemCost">Camio System Cost</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="systemCost" value="500000" min="250000" max="5000000" step="250000">
+                        <span class="unit">$</span>
+                    </div>
+                </div>
+
+                <button class="reset-button" onclick="resetToDefaults()">Reset to Default Values</button>
+            </div>
+
+            <!-- RESULTS SECTION -->
+            <div class="results-section" id="resultsSection">
+                <h2 class="section-title">Year 1 ROI Analysis</h2>
+
+                <button class="copy-button" onclick="copyAsMarkdown()">Copy ROI as Markdown</button>
+
+                <div class="result-card">
+                    <h3>Total Year 1 P&L Impact</h3>
+                    <div class="value" id="totalPLImpact">$0</div>
+                    <div class="subtitle">Direct financial benefit to income statement</div>
+                </div>
+
+                <div class="breakdown">
+                    <h4>P&L Impact Breakdown</h4>
+                    <div class="breakdown-item">
+                        <span class="label">Batches Saved from Rejection</span>
+                        <span class="value" id="batchesSavedValue">$0</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="label">Equipment Deviation Partial Savings</span>
+                        <span class="value" id="partialSavingsValue">$0</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="label">Investigation Labor Savings</span>
+                        <span class="value" id="laborSavingsValue">$0</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="label">Working Capital Financing Savings</span>
+                        <span class="value" id="workingCapitalSavingsValue">$0</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="label">Total Year 1 P&L Impact</span>
+                        <span class="value" id="totalBreakdown">$0</span>
+                    </div>
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-box">
+                        <div class="label">ROI Multiple</div>
+                        <div class="value" id="roiMultiple">0x</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="label">Payback Period</div>
+                        <div class="value" id="paybackMonths">0 mo</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="label">Quality Team Hours Saved</div>
+                        <div class="value" id="hoursSaved">0 hrs</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="label">Working Capital Freed</div>
+                        <div class="value" id="wcFreed">$0</div>
+                    </div>
+                </div>
+
+                <div class="breakdown">
+                    <h4>Additional Insights</h4>
+                    <div class="breakdown-item">
+                        <span class="label">Investigation Time Reduction</span>
+                        <span class="value">90%</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="label">Time per Investigation (Current)</span>
+                        <span class="value" id="currentInvestTime">0 hrs</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="label">Time per Investigation (With Camio)</span>
+                        <span class="value">~2 hrs</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="label">Media Fills Required Per Year</span>
+                        <span class="value" id="mediaFills">0</span>
+                    </div>
+                </div>
+
+                <div class="breakdown">
+                    <h4>Key Assumptions</h4>
+                    <div style="font-size: 13px; color: #6c757d; line-height: 1.8;">
+                        <p style="margin-bottom: 10px;"><strong>Investigation Efficiency:</strong> Camio reduces investigation time from weeks to hours through natural language video search, reducing manual review by 90%.</p>
+                        <p style="margin-bottom: 10px;"><strong>Batch Savings:</strong> Based on ability to prove contamination was sampling artifact (e.g., operator glove contacted collection plate) or intervention had no product impact.</p>
+                        <p style="margin-bottom: 10px;"><strong>Working Capital:</strong> Faster investigations accelerate batch release, reducing average "hold" balance. Savings calculated as freed capital × WACC.</p>
+                        <p><strong>Conservative Estimates:</strong> Actual results may vary based on facility-specific contamination rates, investigation complexity, and operational patterns.</p>
+                    </div>
+                </div>
+
+                <div class="assumptions-footnote" id="assumptionsFootnote">
+                    <h5>Input Assumptions</h5>
+                    <div id="assumptionsList"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-note">
+            <p><strong>Note:</strong> This calculator uses industry benchmarks and conservative assumptions. Your actual ROI may be higher depending on facility-specific factors such as contamination event frequency, batch complexity, and investigation burden. Schedule a consultation to develop a customized ROI analysis for your operation.</p>
+        </div>
+    </div>
+
+    <script>
+        // Default values for reset
+        const defaults = {
+            asepticLines: 4,
+            batchesPerYear: 300,
+            avgBatchValue: 1000000,
+            investigationsPerYear: 15,
+            hoursPerInvestigation: 40,
+            loadedLaborRate: 150,
+            batchesSavedPerYear: 2,
+            partialBatchSavings: 0.7,
+            partialSavingsEvents: 1,
+            avgHoldValue: 30000000,
+            avgHoldValueWithCamio: 20000000,
+            wacc: 8,
+            systemCost: 500000
+        };
+
+        // Get all input elements
+        function getInputs() {
+            return {
+                asepticLines: parseFloat(document.getElementById('asepticLines').value),
+                batchesPerYear: parseFloat(document.getElementById('batchesPerYear').value),
+                avgBatchValue: parseFloat(document.getElementById('avgBatchValue').value),
+                investigationsPerYear: parseFloat(document.getElementById('investigationsPerYear').value),
+                hoursPerInvestigation: parseFloat(document.getElementById('hoursPerInvestigation').value),
+                loadedLaborRate: parseFloat(document.getElementById('loadedLaborRate').value),
+                batchesSavedPerYear: parseFloat(document.getElementById('batchesSavedPerYear').value),
+                partialBatchSavings: parseFloat(document.getElementById('partialBatchSavings').value),
+                partialSavingsEvents: parseFloat(document.getElementById('partialSavingsEvents').value),
+                avgHoldValue: parseFloat(document.getElementById('avgHoldValue').value),
+                avgHoldValueWithCamio: parseFloat(document.getElementById('avgHoldValueWithCamio').value),
+                wacc: parseFloat(document.getElementById('wacc').value),
+                systemCost: parseFloat(document.getElementById('systemCost').value)
+            };
+        }
+
+        // Format currency
+        function formatCurrency(value) {
+            if (value >= 1000000) {
+                return '$' + (value / 1000000).toFixed(2) + 'M';
+            } else if (value >= 1000) {
+                return '$' + (value / 1000).toFixed(0) + 'K';
+            } else {
+                return '$' + value.toFixed(0);
+            }
+        }
+
+        // Format number with commas
+        function formatNumber(value) {
+            return Math.round(value).toLocaleString();
+        }
+
+        // Update assumptions footnote
+        function updateAssumptionsFootnote() {
+            const inputs = getInputs();
+            const assumptionsList = document.getElementById('assumptionsList');
+
+            assumptionsList.innerHTML = `
+                <div class="assumption-item">• Aseptic Lines: ${inputs.asepticLines}</div>
+                <div class="assumption-item">• Batches/Year: ${formatNumber(inputs.batchesPerYear)}</div>
+                <div class="assumption-item">• Avg Batch Value: ${formatCurrency(inputs.avgBatchValue)}</div>
+                <div class="assumption-item">• Investigations/Year: ${inputs.investigationsPerYear}</div>
+                <div class="assumption-item">• Hours/Investigation: ${inputs.hoursPerInvestigation} hrs</div>
+                <div class="assumption-item">• Loaded Labor Rate: $${inputs.loadedLaborRate}/hr</div>
+                <div class="assumption-item">• Batches Saved/Year: ${inputs.batchesSavedPerYear}</div>
+                <div class="assumption-item">• Partial Batch Savings: ${(inputs.partialBatchSavings * 100).toFixed(0)}%</div>
+                <div class="assumption-item">• Partial Savings Events: ${inputs.partialSavingsEvents}/year</div>
+                <div class="assumption-item">• Avg Hold Value (Baseline): ${formatCurrency(inputs.avgHoldValue)}</div>
+                <div class="assumption-item">• Avg Hold Value (With Camio): ${formatCurrency(inputs.avgHoldValueWithCamio)}</div>
+                <div class="assumption-item">• WACC: ${inputs.wacc}%</div>
+                <div class="assumption-item">• Camio System Cost: ${formatCurrency(inputs.systemCost)}</div>
+            `;
+        }
+
+        // Calculate ROI
+        function calculateROI() {
+            const inputs = getInputs();
+
+            // 1. Batches Saved from Rejection
+            const batchesSaved = inputs.batchesSavedPerYear * inputs.avgBatchValue;
+
+            // 2. Partial Batch Savings (equipment deviations)
+            const partialSavings = inputs.partialSavingsEvents * inputs.avgBatchValue * inputs.partialBatchSavings;
+
+            // 3. Investigation Labor Savings
+            // Current time: investigationsPerYear × hoursPerInvestigation
+            // With Camio: investigationsPerYear × 2 hours (90% reduction, ~2 hours per investigation)
+            const currentLaborHours = inputs.investigationsPerYear * inputs.hoursPerInvestigation;
+            const camioLaborHours = inputs.investigationsPerYear * 2;
+            const hoursSaved = currentLaborHours - camioLaborHours;
+            const laborSavings = hoursSaved * inputs.loadedLaborRate;
+
+            // 4. Working Capital Savings
+            const workingCapitalFreed = inputs.avgHoldValue - inputs.avgHoldValueWithCamio;
+            const workingCapitalSavings = workingCapitalFreed * (inputs.wacc / 100);
+
+            // Total P&L Impact
+            const totalPLImpact = batchesSaved + partialSavings + laborSavings + workingCapitalSavings;
+
+            // ROI Metrics
+            const roiMultiple = totalPLImpact / inputs.systemCost;
+            const paybackMonths = (inputs.systemCost / totalPLImpact) * 12;
+
+            // Media fills (semi-annual per line)
+            const mediaFills = inputs.asepticLines * 2;
+
+            // Update UI
+            document.getElementById('totalPLImpact').textContent = formatCurrency(totalPLImpact);
+            document.getElementById('batchesSavedValue').textContent = formatCurrency(batchesSaved);
+            document.getElementById('partialSavingsValue').textContent = formatCurrency(partialSavings);
+            document.getElementById('laborSavingsValue').textContent = formatCurrency(laborSavings);
+            document.getElementById('workingCapitalSavingsValue').textContent = formatCurrency(workingCapitalSavings);
+            document.getElementById('totalBreakdown').textContent = formatCurrency(totalPLImpact);
+
+            document.getElementById('roiMultiple').textContent = roiMultiple.toFixed(1) + 'x';
+            document.getElementById('paybackMonths').textContent = paybackMonths.toFixed(1) + ' mo';
+            document.getElementById('hoursSaved').textContent = formatNumber(hoursSaved) + ' hrs';
+            document.getElementById('wcFreed').textContent = formatCurrency(workingCapitalFreed);
+
+            document.getElementById('currentInvestTime').textContent = inputs.hoursPerInvestigation + ' hrs';
+            document.getElementById('mediaFills').textContent = mediaFills;
+
+            // Update assumptions footnote
+            updateAssumptionsFootnote();
+        }
+
+        // Copy results as markdown
+        function copyAsMarkdown() {
+            const inputs = getInputs();
+
+            // Recalculate values for markdown
+            const batchesSaved = inputs.batchesSavedPerYear * inputs.avgBatchValue;
+            const partialSavings = inputs.partialSavingsEvents * inputs.avgBatchValue * inputs.partialBatchSavings;
+            const currentLaborHours = inputs.investigationsPerYear * inputs.hoursPerInvestigation;
+            const camioLaborHours = inputs.investigationsPerYear * 2;
+            const hoursSaved = currentLaborHours - camioLaborHours;
+            const laborSavings = hoursSaved * inputs.loadedLaborRate;
+            const workingCapitalFreed = inputs.avgHoldValue - inputs.avgHoldValueWithCamio;
+            const workingCapitalSavings = workingCapitalFreed * (inputs.wacc / 100);
+            const totalPLImpact = batchesSaved + partialSavings + laborSavings + workingCapitalSavings;
+            const roiMultiple = totalPLImpact / inputs.systemCost;
+            const paybackMonths = (inputs.systemCost / totalPLImpact) * 12;
+            const mediaFills = inputs.asepticLines * 2;
+
+            const markdown = `# Camio ROI Analysis - Year 1
+
+## Total Year 1 P&L Impact
+**${formatCurrency(totalPLImpact)}**
+
+## P&L Impact Breakdown
+- **Batches Saved from Rejection:** ${formatCurrency(batchesSaved)}
+- **Equipment Deviation Partial Savings:** ${formatCurrency(partialSavings)}
+- **Investigation Labor Savings:** ${formatCurrency(laborSavings)}
+- **Working Capital Financing Savings:** ${formatCurrency(workingCapitalSavings)}
+- **Total Year 1 P&L Impact:** ${formatCurrency(totalPLImpact)}
+
+## Key Metrics
+- **ROI Multiple:** ${roiMultiple.toFixed(1)}x
+- **Payback Period:** ${paybackMonths.toFixed(1)} months
+- **Quality Team Hours Saved:** ${formatNumber(hoursSaved)} hrs/year
+- **Working Capital Freed:** ${formatCurrency(workingCapitalFreed)}
+
+## Additional Insights
+- **Investigation Time Reduction:** 90%
+- **Time per Investigation (Current):** ${inputs.hoursPerInvestigation} hrs
+- **Time per Investigation (With Camio):** ~2 hrs
+- **Media Fills Required Per Year:** ${mediaFills}
+
+## Input Assumptions
+- **Aseptic Lines:** ${inputs.asepticLines}
+- **Batches/Year:** ${formatNumber(inputs.batchesPerYear)}
+- **Avg Batch Value:** ${formatCurrency(inputs.avgBatchValue)}
+- **Investigations/Year:** ${inputs.investigationsPerYear}
+- **Hours/Investigation:** ${inputs.hoursPerInvestigation} hrs
+- **Loaded Labor Rate:** $${inputs.loadedLaborRate}/hr
+- **Batches Saved/Year:** ${inputs.batchesSavedPerYear}
+- **Partial Batch Savings:** ${(inputs.partialBatchSavings * 100).toFixed(0)}%
+- **Partial Savings Events:** ${inputs.partialSavingsEvents}/year
+- **Avg Hold Value (Baseline):** ${formatCurrency(inputs.avgHoldValue)}
+- **Avg Hold Value (With Camio):** ${formatCurrency(inputs.avgHoldValueWithCamio)}
+- **WACC:** ${inputs.wacc}%
+- **Camio System Cost:** ${formatCurrency(inputs.systemCost)}
+
+---
+*Generated by Camio ROI Calculator - Aseptic Manufacturing*`;
+
+            // Copy to clipboard
+            navigator.clipboard.writeText(markdown).then(() => {
+                const button = document.querySelector('.copy-button');
+                const originalText = button.textContent;
+                button.textContent = '✓ Copied to Clipboard!';
+                button.classList.add('copied');
+
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                alert('Failed to copy to clipboard. Please try again.');
+                console.error('Copy failed:', err);
+            });
+        }
+
+        // Reset to default values
+        function resetToDefaults() {
+            Object.keys(defaults).forEach(key => {
+                document.getElementById(key).value = defaults[key];
+            });
+            calculateROI();
+        }
+
+        // Add event listeners to all inputs
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', calculateROI);
+        });
+
+        // Initial calculation
+        calculateROI();
+    </script>
+</body>
+</html>
