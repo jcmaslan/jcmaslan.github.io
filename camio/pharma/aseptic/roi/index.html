@@ -21,7 +21,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             background: white;
             border-radius: 12px;
@@ -275,6 +275,26 @@
             margin-bottom: 5px;
         }
 
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+        }
+
+        .warning-box h4 {
+            color: #856404;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .warning-box p {
+            color: #856404;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
         .footer-note {
             padding: 20px 30px;
             background: #f8f9fa;
@@ -317,7 +337,7 @@
                 <div class="input-group">
                     <label for="asepticLines">Number of Aseptic Filling Lines</label>
                     <div class="input-wrapper">
-                        <input type="number" id="asepticLines" value="4" min="1" max="20" step="1">
+                        <input type="number" id="asepticLines" value="4" min="2" max="20" step="1">
                         <span class="unit">lines</span>
                     </div>
                 </div>
@@ -351,12 +371,21 @@
                 </div>
 
                 <div class="input-group">
-                    <label for="hoursPerInvestigation">Hours Per Investigation (Manual Review)</label>
+                    <label for="hoursPerInvestigation">Hours Per Investigation (Current Process)</label>
                     <div class="input-wrapper">
                         <input type="number" id="hoursPerInvestigation" value="40" min="10" max="100" step="5">
                         <span class="unit">hours</span>
                     </div>
-                    <div class="help-text">SAP research average: 40 hours per batch release decision</div>
+                    <div class="help-text">Industry average: 40 hours per batch release decision</div>
+                </div>
+
+                <div class="input-group">
+                    <label for="investigationTimeReduction">Investigation Time Reduction %</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="investigationTimeReduction" value="20" min="10" max="50" step="5">
+                        <span class="unit">%</span>
+                    </div>
+                    <div class="help-text">Conservative: 20% (video review is ~20-25% of total investigation)</div>
                 </div>
 
                 <div class="input-group">
@@ -367,38 +396,39 @@
                     </div>
                 </div>
 
-                <div class="input-category">Batch Impact Estimates</div>
+                <div class="input-category">Batch Impact Estimates (Probability-Weighted)</div>
 
                 <div class="input-group">
-                    <label for="batchesSavedPerYear">Batches Saved From Rejection (Conservative)</label>
+                    <label for="batchesSavedPerYear">Batches Saved From Rejection</label>
                     <div class="input-wrapper">
-                        <input type="number" id="batchesSavedPerYear" value="2" min="0" max="10" step="1">
+                        <input type="number" id="batchesSavedPerYear" value="0.5" min="0" max="5" step="0.5">
                         <span class="unit">per year</span>
                     </div>
-                    <div class="help-text">EM excursions, interventions proven safe with video evidence</div>
+                    <div class="help-text">Conservative: 0.5 (50% chance of 1 batch). Well-run facilities: 0-1 batch/year.</div>
                 </div>
 
                 <div class="input-group">
                     <label for="partialBatchSavings">Equipment Deviation Partial Batch Savings</label>
                     <div class="input-wrapper">
-                        <input type="number" id="partialBatchSavings" value="0.7" min="0" max="1" step="0.1">
+                        <input type="number" id="partialBatchSavings" value="0.5" min="0" max="0.9" step="0.1">
                         <span class="unit">% of batch</span>
                     </div>
-                    <div class="help-text">70% = save 70% of batch by identifying only affected units</div>
+                    <div class="help-text">50% = save 50% of batch by identifying only affected units</div>
                 </div>
 
                 <div class="input-group">
                     <label for="partialSavingsEvents">Partial Savings Events Per Year</label>
                     <div class="input-wrapper">
-                        <input type="number" id="partialSavingsEvents" value="1" min="0" max="10" step="1">
+                        <input type="number" id="partialSavingsEvents" value="0.5" min="0" max="5" step="0.5">
                         <span class="unit">events/year</span>
                     </div>
+                    <div class="help-text">Conservative: 0.5 (1 event every 2 years)</div>
                 </div>
 
-                <div class="input-category">Working Capital</div>
+                <div class="input-category">Working Capital (Balance Sheet Impact Only)</div>
 
                 <div class="input-group">
-                    <label for="avgHoldValue">Average Batch Value in "Hold" Status</label>
+                    <label for="avgHoldValue">Average Batch Value in "Hold" Status (Current)</label>
                     <div class="input-wrapper">
                         <input type="number" id="avgHoldValue" value="30000000" min="5000000" max="100000000" step="5000000">
                         <span class="unit">$</span>
@@ -412,24 +442,15 @@
                         <input type="number" id="avgHoldValueWithCamio" value="20000000" min="5000000" max="100000000" step="5000000">
                         <span class="unit">$</span>
                     </div>
-                    <div class="help-text">After faster investigations</div>
-                </div>
-
-                <div class="input-group">
-                    <label for="wacc">Cost of Capital (WACC)</label>
-                    <div class="input-wrapper">
-                        <input type="number" id="wacc" value="8" min="4" max="15" step="0.5">
-                        <span class="unit">%</span>
-                    </div>
-                    <div class="help-text">Typical pharma WACC: 7-10%</div>
+                    <div class="help-text">After faster investigations (NOT added to P&L ROI)</div>
                 </div>
 
                 <div class="input-category">Camio Investment</div>
 
                 <div class="input-group">
-                    <label for="systemCost">Camio System Cost</label>
+                    <label for="systemCost">Camio Annual Recurring Cost</label>
                     <div class="input-wrapper">
-                        <input type="number" id="systemCost" value="500000" min="250000" max="5000000" step="250000">
+                        <input type="number" id="systemCost" value="250000" min="100000" max="5000000" step="50000">
                         <span class="unit">$</span>
                     </div>
                 </div>
@@ -439,9 +460,14 @@
 
             <!-- RESULTS SECTION -->
             <div class="results-section" id="resultsSection">
-                <h2 class="section-title">Year 1 ROI Analysis</h2>
+                <h2 class="section-title">Year 1 P&L Impact Analysis</h2>
 
                 <button class="copy-button" onclick="copyAsMarkdown()">Copy ROI as Markdown</button>
+
+                <div class="warning-box">
+                    <h4>Conservative Assumptions</h4>
+                    <p>This calculator uses conservative, probability-weighted estimates. Working capital improvement is reported separately (NOT added to P&L ROI). Investigation time reduction reflects that video review is only 20-25% of total investigation time.</p>
+                </div>
 
                 <div class="result-card">
                     <h3>Total Year 1 P&L Impact</h3>
@@ -464,12 +490,20 @@
                         <span class="value" id="laborSavingsValue">$0</span>
                     </div>
                     <div class="breakdown-item">
-                        <span class="label">Working Capital Financing Savings</span>
-                        <span class="value" id="workingCapitalSavingsValue">$0</span>
-                    </div>
-                    <div class="breakdown-item">
                         <span class="label">Total Year 1 P&L Impact</span>
                         <span class="value" id="totalBreakdown">$0</span>
+                    </div>
+                </div>
+
+                <div class="breakdown">
+                    <h4>Annual Camio Cost</h4>
+                    <div class="breakdown-item">
+                        <span class="label">Camio Annual Recurring Fee</span>
+                        <span class="value" id="camioAnnualCost">$0</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="label">Year 1 Net P&L Impact</span>
+                        <span class="value" id="netPLImpact">$0</span>
                     </div>
                 </div>
 
@@ -487,8 +521,20 @@
                         <div class="value" id="hoursSaved">0 hrs</div>
                     </div>
                     <div class="metric-box">
-                        <div class="label">Working Capital Freed</div>
-                        <div class="value" id="wcFreed">$0</div>
+                        <div class="label">3-Year NPV (10% discount)</div>
+                        <div class="value" id="npv3Year">$0</div>
+                    </div>
+                </div>
+
+                <div class="breakdown">
+                    <h4>Working Capital Impact (Balance Sheet Only)</h4>
+                    <div class="breakdown-item">
+                        <span class="label">Working Capital Freed</span>
+                        <span class="value" id="wcFreed">$0</span>
+                    </div>
+                    <div class="breakdown-item" style="font-weight: normal; font-size: 13px; color: #6c757d;">
+                        <span class="label" style="color: #6c757d;">Note: Not included in P&L ROI above</span>
+                        <span class="value" style="color: #6c757d;">Balance sheet metric</span>
                     </div>
                 </div>
 
@@ -496,7 +542,7 @@
                     <h4>Additional Insights</h4>
                     <div class="breakdown-item">
                         <span class="label">Investigation Time Reduction</span>
-                        <span class="value">90%</span>
+                        <span class="value" id="timeReductionPct">0%</span>
                     </div>
                     <div class="breakdown-item">
                         <span class="label">Time per Investigation (Current)</span>
@@ -504,21 +550,17 @@
                     </div>
                     <div class="breakdown-item">
                         <span class="label">Time per Investigation (With Camio)</span>
-                        <span class="value">~2 hrs</span>
-                    </div>
-                    <div class="breakdown-item">
-                        <span class="label">Media Fills Required Per Year</span>
-                        <span class="value" id="mediaFills">0</span>
+                        <span class="value" id="camioInvestTime">0 hrs</span>
                     </div>
                 </div>
 
                 <div class="breakdown">
                     <h4>Key Assumptions</h4>
                     <div style="font-size: 13px; color: #6c757d; line-height: 1.8;">
-                        <p style="margin-bottom: 10px;"><strong>Investigation Efficiency:</strong> Camio reduces investigation time from weeks to hours through natural language video search, reducing manual review by 90%.</p>
-                        <p style="margin-bottom: 10px;"><strong>Batch Savings:</strong> Based on ability to prove contamination was sampling artifact (e.g., operator glove contacted collection plate) or intervention had no product impact.</p>
-                        <p style="margin-bottom: 10px;"><strong>Working Capital:</strong> Faster investigations accelerate batch release, reducing average "hold" balance. Savings calculated as freed capital × WACC.</p>
-                        <p><strong>Conservative Estimates:</strong> Actual results may vary based on facility-specific contamination rates, investigation complexity, and operational patterns.</p>
+                        <p style="margin-bottom: 10px;"><strong>Investigation Efficiency:</strong> Video review represents 20-25% of total investigation time. Camio accelerates this portion through natural language search.</p>
+                        <p style="margin-bottom: 10px;"><strong>Batch Savings:</strong> Probability-weighted based on realistic facility experience. Well-run facilities: 0-1 batches/year saved due to inconclusive investigations.</p>
+                        <p style="margin-bottom: 10px;"><strong>Working Capital:</strong> Faster investigations reduce average "hold" balance. Reported separately as balance sheet improvement, NOT added to P&L ROI.</p>
+                        <p><strong>Conservative Estimates:</strong> Calculator uses conservative assumptions appropriate for financial planning. Actual results depend on facility-specific contamination rates and investigation patterns.</p>
                     </div>
                 </div>
 
@@ -530,7 +572,7 @@
         </div>
 
         <div class="footer-note">
-            <p><strong>Note:</strong> This calculator uses industry benchmarks and conservative assumptions. Your actual ROI may be higher depending on facility-specific factors such as contamination event frequency, batch complexity, and investigation burden. Schedule a consultation to develop a customized ROI analysis for your operation.</p>
+            <p><strong>Note:</strong> This calculator uses conservative, probability-weighted assumptions appropriate for financial planning. Working capital improvement is real but reported separately from P&L ROI. Recommend starting with pilot program (2 lines, $250K annually) to validate assumptions before scaling.</p>
         </div>
     </div>
 
@@ -542,14 +584,14 @@
             avgBatchValue: 1000000,
             investigationsPerYear: 15,
             hoursPerInvestigation: 40,
+            investigationTimeReduction: 20,
             loadedLaborRate: 150,
-            batchesSavedPerYear: 2,
-            partialBatchSavings: 0.7,
-            partialSavingsEvents: 1,
+            batchesSavedPerYear: 0.5,
+            partialBatchSavings: 0.5,
+            partialSavingsEvents: 0.5,
             avgHoldValue: 30000000,
             avgHoldValueWithCamio: 20000000,
-            wacc: 8,
-            systemCost: 500000
+            systemCost: 250000
         };
 
         // Get all input elements
@@ -560,13 +602,13 @@
                 avgBatchValue: parseFloat(document.getElementById('avgBatchValue').value),
                 investigationsPerYear: parseFloat(document.getElementById('investigationsPerYear').value),
                 hoursPerInvestigation: parseFloat(document.getElementById('hoursPerInvestigation').value),
+                investigationTimeReduction: parseFloat(document.getElementById('investigationTimeReduction').value),
                 loadedLaborRate: parseFloat(document.getElementById('loadedLaborRate').value),
                 batchesSavedPerYear: parseFloat(document.getElementById('batchesSavedPerYear').value),
                 partialBatchSavings: parseFloat(document.getElementById('partialBatchSavings').value),
                 partialSavingsEvents: parseFloat(document.getElementById('partialSavingsEvents').value),
                 avgHoldValue: parseFloat(document.getElementById('avgHoldValue').value),
                 avgHoldValueWithCamio: parseFloat(document.getElementById('avgHoldValueWithCamio').value),
-                wacc: parseFloat(document.getElementById('wacc').value),
                 systemCost: parseFloat(document.getElementById('systemCost').value)
             };
         }
@@ -590,22 +632,21 @@
         // Update assumptions footnote
         function updateAssumptionsFootnote() {
             const inputs = getInputs();
-            const assumptionsList = document.getElementById('assumptionsList');
 
             assumptionsList.innerHTML = `
                 <div class="assumption-item">• Aseptic Lines: ${inputs.asepticLines}</div>
                 <div class="assumption-item">• Batches/Year: ${formatNumber(inputs.batchesPerYear)}</div>
                 <div class="assumption-item">• Avg Batch Value: ${formatCurrency(inputs.avgBatchValue)}</div>
                 <div class="assumption-item">• Investigations/Year: ${inputs.investigationsPerYear}</div>
-                <div class="assumption-item">• Hours/Investigation: ${inputs.hoursPerInvestigation} hrs</div>
+                <div class="assumption-item">• Hours/Investigation (Current): ${inputs.hoursPerInvestigation} hrs</div>
+                <div class="assumption-item">• Investigation Time Reduction: ${inputs.investigationTimeReduction}%</div>
                 <div class="assumption-item">• Loaded Labor Rate: $${inputs.loadedLaborRate}/hr</div>
-                <div class="assumption-item">• Batches Saved/Year: ${inputs.batchesSavedPerYear}</div>
+                <div class="assumption-item">• Batches Saved/Year (probability-weighted): ${inputs.batchesSavedPerYear}</div>
                 <div class="assumption-item">• Partial Batch Savings: ${(inputs.partialBatchSavings * 100).toFixed(0)}%</div>
                 <div class="assumption-item">• Partial Savings Events: ${inputs.partialSavingsEvents}/year</div>
-                <div class="assumption-item">• Avg Hold Value (Baseline): ${formatCurrency(inputs.avgHoldValue)}</div>
+                <div class="assumption-item">• Avg Hold Value (Current): ${formatCurrency(inputs.avgHoldValue)}</div>
                 <div class="assumption-item">• Avg Hold Value (With Camio): ${formatCurrency(inputs.avgHoldValueWithCamio)}</div>
-                <div class="assumption-item">• WACC: ${inputs.wacc}%</div>
-                <div class="assumption-item">• Camio System Cost: ${formatCurrency(inputs.systemCost)}</div>
+                <div class="assumption-item">• Camio Annual Cost: ${formatCurrency(inputs.systemCost)}</div>
             `;
         }
 
@@ -613,49 +654,64 @@
         function calculateROI() {
             const inputs = getInputs();
 
-            // 1. Batches Saved from Rejection
+            // Get Camio cost from user input
+            const systemCost = inputs.systemCost;
+
+            // 1. Batches Saved from Rejection (probability-weighted)
             const batchesSaved = inputs.batchesSavedPerYear * inputs.avgBatchValue;
 
             // 2. Partial Batch Savings (equipment deviations)
             const partialSavings = inputs.partialSavingsEvents * inputs.avgBatchValue * inputs.partialBatchSavings;
 
-            // 3. Investigation Labor Savings
-            // Current time: investigationsPerYear × hoursPerInvestigation
-            // With Camio: investigationsPerYear × 2 hours (90% reduction, ~2 hours per investigation)
-            const currentLaborHours = inputs.investigationsPerYear * inputs.hoursPerInvestigation;
-            const camioLaborHours = inputs.investigationsPerYear * 2;
-            const hoursSaved = currentLaborHours - camioLaborHours;
+            // 3. Investigation Labor Savings (realistic time reduction)
+            const hoursReduction = inputs.hoursPerInvestigation * (inputs.investigationTimeReduction / 100);
+            const hoursSaved = inputs.investigationsPerYear * hoursReduction;
             const laborSavings = hoursSaved * inputs.loadedLaborRate;
 
-            // 4. Working Capital Savings
-            const workingCapitalFreed = inputs.avgHoldValue - inputs.avgHoldValueWithCamio;
-            const workingCapitalSavings = workingCapitalFreed * (inputs.wacc / 100);
-
             // Total P&L Impact
-            const totalPLImpact = batchesSaved + partialSavings + laborSavings + workingCapitalSavings;
+            const totalPLImpact = batchesSaved + partialSavings + laborSavings;
+
+            // Net P&L (after Camio cost)
+            const netPLImpact = totalPLImpact - systemCost;
 
             // ROI Metrics
-            const roiMultiple = totalPLImpact / inputs.systemCost;
-            const paybackMonths = (inputs.systemCost / totalPLImpact) * 12;
+            const roiMultiple = totalPLImpact / systemCost;
+            const paybackMonths = (systemCost / totalPLImpact) * 12;
 
-            // Media fills (semi-annual per line)
-            const mediaFills = inputs.asepticLines * 2;
+            // 3-Year NPV at 10% discount rate
+            const discountRate = 0.10;
+            const year1NPV = netPLImpact / (1 + discountRate);
+            const year2NPV = netPLImpact / Math.pow(1 + discountRate, 2);
+            const year3NPV = netPLImpact / Math.pow(1 + discountRate, 3);
+            const npv3Year = year1NPV + year2NPV + year3NPV;
+
+            // Working Capital (not added to P&L)
+            const workingCapitalFreed = inputs.avgHoldValue - inputs.avgHoldValueWithCamio;
+
+            // Time with Camio
+            const camioInvestTime = inputs.hoursPerInvestigation * (1 - inputs.investigationTimeReduction / 100);
 
             // Update UI
             document.getElementById('totalPLImpact').textContent = formatCurrency(totalPLImpact);
             document.getElementById('batchesSavedValue').textContent = formatCurrency(batchesSaved);
             document.getElementById('partialSavingsValue').textContent = formatCurrency(partialSavings);
             document.getElementById('laborSavingsValue').textContent = formatCurrency(laborSavings);
-            document.getElementById('workingCapitalSavingsValue').textContent = formatCurrency(workingCapitalSavings);
             document.getElementById('totalBreakdown').textContent = formatCurrency(totalPLImpact);
+
+            document.getElementById('camioAnnualCost').textContent = formatCurrency(systemCost);
+            document.getElementById('netPLImpact').textContent = formatCurrency(netPLImpact);
+            document.getElementById('netPLImpact').style.color = netPLImpact >= 0 ? '#28a745' : '#dc3545';
 
             document.getElementById('roiMultiple').textContent = roiMultiple.toFixed(1) + 'x';
             document.getElementById('paybackMonths').textContent = paybackMonths.toFixed(1) + ' mo';
             document.getElementById('hoursSaved').textContent = formatNumber(hoursSaved) + ' hrs';
+            document.getElementById('npv3Year').textContent = formatCurrency(npv3Year);
+            document.getElementById('npv3Year').style.color = npv3Year >= 0 ? '#28a745' : '#dc3545';
             document.getElementById('wcFreed').textContent = formatCurrency(workingCapitalFreed);
 
+            document.getElementById('timeReductionPct').textContent = inputs.investigationTimeReduction + '%';
             document.getElementById('currentInvestTime').textContent = inputs.hoursPerInvestigation + ' hrs';
-            document.getElementById('mediaFills').textContent = mediaFills;
+            document.getElementById('camioInvestTime').textContent = camioInvestTime.toFixed(1) + ' hrs';
 
             // Update assumptions footnote
             updateAssumptionsFootnote();
@@ -664,59 +720,77 @@
         // Copy results as markdown
         function copyAsMarkdown() {
             const inputs = getInputs();
+            const systemCost = inputs.systemCost;
 
             // Recalculate values for markdown
             const batchesSaved = inputs.batchesSavedPerYear * inputs.avgBatchValue;
             const partialSavings = inputs.partialSavingsEvents * inputs.avgBatchValue * inputs.partialBatchSavings;
-            const currentLaborHours = inputs.investigationsPerYear * inputs.hoursPerInvestigation;
-            const camioLaborHours = inputs.investigationsPerYear * 2;
-            const hoursSaved = currentLaborHours - camioLaborHours;
+            const hoursReduction = inputs.hoursPerInvestigation * (inputs.investigationTimeReduction / 100);
+            const hoursSaved = inputs.investigationsPerYear * hoursReduction;
             const laborSavings = hoursSaved * inputs.loadedLaborRate;
+            const totalPLImpact = batchesSaved + partialSavings + laborSavings;
+            const netPLImpact = totalPLImpact - systemCost;
+            const roiMultiple = totalPLImpact / systemCost;
+            const paybackMonths = (systemCost / totalPLImpact) * 12;
             const workingCapitalFreed = inputs.avgHoldValue - inputs.avgHoldValueWithCamio;
-            const workingCapitalSavings = workingCapitalFreed * (inputs.wacc / 100);
-            const totalPLImpact = batchesSaved + partialSavings + laborSavings + workingCapitalSavings;
-            const roiMultiple = totalPLImpact / inputs.systemCost;
-            const paybackMonths = (inputs.systemCost / totalPLImpact) * 12;
-            const mediaFills = inputs.asepticLines * 2;
+            const camioInvestTime = inputs.hoursPerInvestigation * (1 - inputs.investigationTimeReduction / 100);
 
-            const markdown = `# Camio ROI Analysis - Year 1
+            // 3-Year NPV
+            const discountRate = 0.10;
+            const year1NPV = netPLImpact / (1 + discountRate);
+            const year2NPV = netPLImpact / Math.pow(1 + discountRate, 2);
+            const year3NPV = netPLImpact / Math.pow(1 + discountRate, 3);
+            const npv3Year = year1NPV + year2NPV + year3NPV;
+
+            const markdown = `# Camio ROI Analysis - Aseptic Manufacturing
 
 ## Total Year 1 P&L Impact
 **${formatCurrency(totalPLImpact)}**
 
 ## P&L Impact Breakdown
-- **Batches Saved from Rejection:** ${formatCurrency(batchesSaved)}
-- **Equipment Deviation Partial Savings:** ${formatCurrency(partialSavings)}
-- **Investigation Labor Savings:** ${formatCurrency(laborSavings)}
-- **Working Capital Financing Savings:** ${formatCurrency(workingCapitalSavings)}
+- **Batches Saved from Rejection:** ${formatCurrency(batchesSaved)} (${inputs.batchesSavedPerYear} batches probability-weighted)
+- **Equipment Deviation Partial Savings:** ${formatCurrency(partialSavings)} (${inputs.partialSavingsEvents} events probability-weighted)
+- **Investigation Labor Savings:** ${formatCurrency(laborSavings)} (${inputs.investigationTimeReduction}% time reduction)
 - **Total Year 1 P&L Impact:** ${formatCurrency(totalPLImpact)}
+
+## Annual Camio Cost
+- **Camio Annual Recurring Fee:** ${formatCurrency(systemCost)}
+- **Year 1 Net P&L Impact:** ${formatCurrency(netPLImpact)}
 
 ## Key Metrics
 - **ROI Multiple:** ${roiMultiple.toFixed(1)}x
 - **Payback Period:** ${paybackMonths.toFixed(1)} months
 - **Quality Team Hours Saved:** ${formatNumber(hoursSaved)} hrs/year
+- **3-Year NPV (10% discount):** ${formatCurrency(npv3Year)}
+
+## Working Capital Impact (Balance Sheet Only - Not Included in P&L ROI Above)
 - **Working Capital Freed:** ${formatCurrency(workingCapitalFreed)}
+- **Note:** This represents improved cash conversion cycle and inventory turnover, reported separately from P&L impact
 
 ## Additional Insights
-- **Investigation Time Reduction:** 90%
+- **Investigation Time Reduction:** ${inputs.investigationTimeReduction}%
 - **Time per Investigation (Current):** ${inputs.hoursPerInvestigation} hrs
-- **Time per Investigation (With Camio):** ~2 hrs
-- **Media Fills Required Per Year:** ${mediaFills}
+- **Time per Investigation (With Camio):** ${camioInvestTime.toFixed(1)} hrs
 
-## Input Assumptions
+## Input Assumptions (Conservative, Probability-Weighted)
 - **Aseptic Lines:** ${inputs.asepticLines}
 - **Batches/Year:** ${formatNumber(inputs.batchesPerYear)}
 - **Avg Batch Value:** ${formatCurrency(inputs.avgBatchValue)}
 - **Investigations/Year:** ${inputs.investigationsPerYear}
-- **Hours/Investigation:** ${inputs.hoursPerInvestigation} hrs
+- **Hours/Investigation (Current):** ${inputs.hoursPerInvestigation} hrs
+- **Investigation Time Reduction:** ${inputs.investigationTimeReduction}% (video review is ~20-25% of total investigation time)
 - **Loaded Labor Rate:** $${inputs.loadedLaborRate}/hr
-- **Batches Saved/Year:** ${inputs.batchesSavedPerYear}
+- **Batches Saved/Year:** ${inputs.batchesSavedPerYear} (probability-weighted; well-run facilities: 0-1 batch/year)
 - **Partial Batch Savings:** ${(inputs.partialBatchSavings * 100).toFixed(0)}%
-- **Partial Savings Events:** ${inputs.partialSavingsEvents}/year
-- **Avg Hold Value (Baseline):** ${formatCurrency(inputs.avgHoldValue)}
+- **Partial Savings Events:** ${inputs.partialSavingsEvents}/year (probability-weighted)
+- **Avg Hold Value (Current):** ${formatCurrency(inputs.avgHoldValue)}
 - **Avg Hold Value (With Camio):** ${formatCurrency(inputs.avgHoldValueWithCamio)}
-- **WACC:** ${inputs.wacc}%
-- **Camio System Cost:** ${formatCurrency(inputs.systemCost)}
+
+## Notes
+- This analysis uses conservative, probability-weighted assumptions appropriate for financial planning
+- Working capital improvement is real but reported separately from P&L ROI
+- Investigation time reduction reflects that video review represents ~20-25% of total investigation burden
+- Recommend pilot program (2 lines, $250K annually) to validate assumptions before scaling
 
 ---
 *Generated by Camio ROI Calculator - Aseptic Manufacturing*`;
