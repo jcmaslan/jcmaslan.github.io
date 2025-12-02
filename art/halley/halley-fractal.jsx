@@ -9,8 +9,7 @@ function HalleyFractal() {
       formula: 'z³ - 1',
       maxIter: 50,
       colorScheme: 'rainbow',
-      bounds: { minX: -3, maxX: 3, minY: -3, maxY: 3 },
-      svgResolution: 300
+      bounds: { minX: -3, maxX: 3, minY: -3, maxY: 3 }
     };
     
     if (typeof window === 'undefined') return defaults;
@@ -31,8 +30,7 @@ function HalleyFractal() {
           maxX: parseFloat(params.get('x2')) || defaults.bounds.maxX,
           minY: parseFloat(params.get('y1')) || defaults.bounds.minY,
           maxY: parseFloat(params.get('y2')) || defaults.bounds.maxY
-        },
-        svgResolution: parseInt(params.get('svgRes')) || defaults.svgResolution
+        }
       };
     } catch (e) {
       return defaults;
@@ -46,7 +44,6 @@ function HalleyFractal() {
   const [maxIter, setMaxIter] = useState(initialState.maxIter);
   const [colorScheme, setColorScheme] = useState(initialState.colorScheme);
   const [bounds, setBounds] = useState(initialState.bounds);
-  const [svgResolution, setSvgResolution] = useState(initialState.svgResolution);
   
   const [isRendering, setIsRendering] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -60,7 +57,7 @@ function HalleyFractal() {
       isInitialized.current = true;
       return;
     }
-    
+
     const params = new URLSearchParams();
     params.set('f', encodeURIComponent(formula));
     params.set('res', resolution.toString());
@@ -70,13 +67,12 @@ function HalleyFractal() {
     params.set('x2', bounds.maxX.toFixed(10));
     params.set('y1', bounds.minY.toFixed(10));
     params.set('y2', bounds.maxY.toFixed(10));
-    params.set('svgRes', svgResolution.toString());
-    
+
     const newHash = params.toString();
     if (window.location.hash.slice(1) !== newHash) {
       window.history.replaceState(null, '', `#${newHash}`);
     }
-  }, [formula, resolution, maxIter, colorScheme, bounds, svgResolution]);
+  }, [formula, resolution, maxIter, colorScheme, bounds]);
 
   // Copy URL to clipboard
   const copyShareLink = async () => {
@@ -686,11 +682,11 @@ function HalleyFractal() {
   const generateTracedSVG = useCallback(async () => {
     const func = functions[formula];
     if (!func) return null;
-    
+
     setIsExporting(true);
     setProgress(0);
-    
-    const res = svgResolution;
+
+    const res = resolution;
     const epsilon = 0.00001;
     
     const { minX, maxX, minY, maxY } = bounds;
@@ -917,17 +913,17 @@ function HalleyFractal() {
     setProgress(100);
     
     return svgContent;
-  }, [formula, maxIter, colorScheme, bounds, svgResolution]);
+  }, [formula, maxIter, colorScheme, bounds, resolution]);
 
   // Generate SVG with true vector contour paths (outline style)
   const generateContourSVG = useCallback(async () => {
     const func = functions[formula];
     if (!func) return null;
-    
+
     setIsExporting(true);
     setProgress(0);
-    
-    const res = svgResolution;
+
+    const res = resolution;
     const epsilon = 0.00001;
     
     const { minX, maxX, minY, maxY } = bounds;
@@ -1023,7 +1019,7 @@ function HalleyFractal() {
     setProgress(100);
     
     return svgContent;
-  }, [formula, maxIter, colorScheme, bounds, svgResolution]);
+  }, [formula, maxIter, colorScheme, bounds, resolution]);
 
   const downloadTracedSVG = async () => {
     const svgContent = await generateTracedSVG();
@@ -1071,6 +1067,42 @@ function HalleyFractal() {
   useEffect(() => {
     renderFractal();
   }, [renderFractal]);
+
+  // Keyboard controls
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Prevent default behavior for arrow keys and +/- to avoid page scrolling
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', '+', '=', '-', '_'].includes(e.key)) {
+        e.preventDefault();
+      }
+
+      switch (e.key) {
+        case 'ArrowUp':
+          handlePan(0, 1);
+          break;
+        case 'ArrowDown':
+          handlePan(0, -1);
+          break;
+        case 'ArrowLeft':
+          handlePan(-1, 0);
+          break;
+        case 'ArrowRight':
+          handlePan(1, 0);
+          break;
+        case '+':
+        case '=': // Also catch '=' for keyboards where + requires shift
+          handleZoom(2);
+          break;
+        case '-':
+        case '_': // Also catch '_' for keyboards where - requires shift
+          handleZoom(0.5);
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [bounds]); // Re-attach when bounds change
 
   const handleZoom = (factor) => {
     const centerX = (bounds.minX + bounds.maxX) / 2;
@@ -1131,11 +1163,11 @@ function HalleyFractal() {
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-center mb-2 bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent">
+        <h1 className="text-3xl font-bold text-center mb-2 text-white">
           Halley's Method Fractal Art
         </h1>
         <p className="text-gray-400 text-center mb-6 text-sm">
-          Click on the fractal to zoom in and explore infinite detail
+          Click to zoom • Arrow keys to pan • +/- to zoom in/out
         </p>
         
         <div className="flex flex-col lg:flex-row gap-6">
@@ -1172,7 +1204,7 @@ function HalleyFractal() {
               <div className="flex gap-2 justify-center">
                 <button
                   onClick={() => handleZoom(2)}
-                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition"
+                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition"
                   title="Zoom In"
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1182,7 +1214,7 @@ function HalleyFractal() {
                 </button>
                 <button
                   onClick={() => handleZoom(0.5)}
-                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition"
+                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition"
                   title="Zoom Out"
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1192,7 +1224,7 @@ function HalleyFractal() {
                 </button>
                 <button
                   onClick={resetView}
-                  className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition"
+                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition"
                   title="Reset View"
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1391,31 +1423,9 @@ function HalleyFractal() {
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
                 </svg>
-                Export as SVG
+                Export
               </h3>
-              
-              <div className="mb-3">
-                <label className="block text-xs text-gray-400 mb-1">
-                  SVG Resolution: {svgResolution} × {svgResolution}px
-                </label>
-                <input
-                  type="range"
-                  min="100"
-                  max="2400"
-                  step="100"
-                  value={svgResolution}
-                  onChange={(e) => setSvgResolution(parseInt(e.target.value))}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>100px</span>
-                  <span>2400px</span>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  {svgResolution <= 300 ? '⚡ Fast' : svgResolution <= 800 ? '⏱️ Medium' : svgResolution <= 1600 ? '🐢 Slow' : '🐌 Very slow'}
-                </p>
-              </div>
-              
+
               <div className="space-y-2">
                 <button
                   onClick={downloadPNG}
@@ -1437,10 +1447,10 @@ function HalleyFractal() {
                 <button
                   onClick={downloadTracedSVG}
                   disabled={isExporting || isRendering}
-                  className={`w-full py-2 px-4 rounded-lg font-medium transition flex items-center justify-center gap-2 ${
+                  className={`w-full py-2 px-4 rounded-lg font-medium transition flex items-center justify-center gap-2 text-sm ${
                     isExporting || isRendering
                       ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white'
+                      : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
                   }`}
                 >
                   {isExporting ? (
@@ -1464,10 +1474,10 @@ function HalleyFractal() {
                 <button
                   onClick={downloadContourSVG}
                   disabled={isExporting || isRendering}
-                  className={`w-full py-2 px-4 rounded-lg font-medium transition flex items-center justify-center gap-2 ${
+                  className={`w-full py-2 px-4 rounded-lg font-medium transition flex items-center justify-center gap-2 text-sm ${
                     isExporting || isRendering
                       ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white'
+                      : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
                   }`}
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1481,13 +1491,16 @@ function HalleyFractal() {
               
               <div className="mt-3 p-2 bg-gray-800 rounded-lg">
                 <p className="text-xs text-gray-400">
-                  <strong className="text-orange-400">PNG:</strong> Raster image at current canvas resolution. Fast, exact pixel output.
+                  <strong className="text-orange-400">PNG:</strong> Raster image. Fast, exact pixel output.
                 </p>
                 <p className="text-xs text-gray-400 mt-1">
-                  <strong className="text-green-400">Traced:</strong> Filled regions with optimized run-length encoding. Best for printing.
+                  <strong className="text-gray-300">Traced SVG:</strong> Filled vector regions. Best for printing.
                 </p>
                 <p className="text-xs text-gray-400 mt-1">
-                  <strong className="text-blue-400">Contour:</strong> Smooth Bézier curve outlines. Smaller files, artistic look.
+                  <strong className="text-gray-300">Contour SVG:</strong> Smooth curve outlines. Smaller files, artistic look.
+                </p>
+                <p className="text-xs text-gray-500 mt-2 italic">
+                  All exports use current resolution setting.
                 </p>
               </div>
             </div>
@@ -1495,7 +1508,7 @@ function HalleyFractal() {
             <div className="pt-4 border-t border-gray-700">
               <h3 className="text-sm font-medium mb-2">About</h3>
               <p className="text-xs text-gray-400">
-                This fractal is generated using Halley's method, a root-finding algorithm. 
+                This fractal is generated using <a href="https://en.wikipedia.org/wiki/Halley%27s_method">Halley's method</a>, a root-finding algorithm. 
                 Each pixel's color represents how quickly the algorithm converges when 
                 starting from that point in the complex plane.
               </p>
