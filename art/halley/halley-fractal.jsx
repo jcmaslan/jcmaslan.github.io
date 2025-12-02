@@ -66,6 +66,41 @@ function HalleyFractal() {
     return ratios[aspectRatio] || ratios['1:1'];
   }, [resolution, aspectRatio]);
 
+  // Adjust bounds when aspect ratio changes to prevent distortion
+  useEffect(() => {
+    const { width, height } = canvasDimensions;
+    const canvasAspect = width / height;
+
+    const centerX = (bounds.minX + bounds.maxX) / 2;
+    const centerY = (bounds.minY + bounds.maxY) / 2;
+    const currentRangeX = bounds.maxX - bounds.minX;
+    const currentRangeY = bounds.maxY - bounds.minY;
+    const currentAspect = currentRangeX / currentRangeY;
+
+    // Only adjust if aspect ratios don't match (with small tolerance)
+    if (Math.abs(currentAspect - canvasAspect) > 0.01) {
+      let newRangeX, newRangeY;
+
+      // Keep the larger dimension and adjust the smaller one
+      if (canvasAspect > 1) {
+        // Wider canvas - keep Y range, adjust X range
+        newRangeY = currentRangeY;
+        newRangeX = newRangeY * canvasAspect;
+      } else {
+        // Taller canvas - keep X range, adjust Y range
+        newRangeX = currentRangeX;
+        newRangeY = newRangeX / canvasAspect;
+      }
+
+      setBounds({
+        minX: centerX - newRangeX / 2,
+        maxX: centerX + newRangeX / 2,
+        minY: centerY - newRangeY / 2,
+        maxY: centerY + newRangeY / 2
+      });
+    }
+  }, [canvasDimensions, bounds]);
+
   // Update URL hash when state changes
   useEffect(() => {
     if (!isInitialized.current) {
@@ -422,6 +457,54 @@ function HalleyFractal() {
           g: Math.floor(128 + 127 * Math.sin(t * Math.PI * 2 + 2.094)),
           b: Math.floor(128 + 127 * Math.sin(t * Math.PI * 2 + 4.188))
         };
+      }
+      case 'viridis': {
+        // Perceptually uniform color map: purple → green → yellow
+        const r = Math.floor(255 * (0.267 + t * (0.329 * Math.sin(Math.PI * t))));
+        const g = Math.floor(255 * (0.005 + 0.988 * t - 0.5 * t * t));
+        const b = Math.floor(255 * (0.329 + 0.5 * Math.sin(Math.PI * (t - 0.5))));
+        return { r: Math.max(0, Math.min(255, r)), g: Math.max(0, Math.min(255, g)), b: Math.max(0, Math.min(255, b)) };
+      }
+      case 'sunset': {
+        // Deep purples → oranges → pinks → yellow
+        if (t < 0.25) {
+          const s = t * 4;
+          return { r: Math.floor(80 + s * 100), g: Math.floor(20 + s * 60), b: Math.floor(100 - s * 50) };
+        } else if (t < 0.5) {
+          const s = (t - 0.25) * 4;
+          return { r: Math.floor(180 + s * 75), g: Math.floor(80 + s * 80), b: Math.floor(50 + s * 100) };
+        } else if (t < 0.75) {
+          const s = (t - 0.5) * 4;
+          return { r: Math.floor(255), g: Math.floor(160 + s * 50), b: Math.floor(150 - s * 50) };
+        } else {
+          const s = (t - 0.75) * 4;
+          return { r: Math.floor(255), g: Math.floor(210 + s * 45), b: Math.floor(100 + s * 100) };
+        }
+      }
+      case 'copper': {
+        // Black → brown → orange → gold metallic
+        return {
+          r: Math.floor(Math.min(255, t * 320)),
+          g: Math.floor(Math.min(200, t * 250)),
+          b: Math.floor(Math.min(100, t * 120))
+        };
+      }
+      case 'aurora': {
+        // Greens → purples → blues (northern lights)
+        const hue = 120 + t * 180; // Start at green, move through blue to purple
+        const sat = 70 + t * 30;
+        const light = 40 + Math.sin(t * Math.PI) * 20;
+        return hslToRgb(hue, sat, light);
+      }
+      case 'cyberpunk': {
+        // Deep purple → hot pink → electric blue
+        if (t < 0.5) {
+          const s = t * 2;
+          return { r: Math.floor(100 + s * 155), g: Math.floor(20 + s * 0), b: Math.floor(200 - s * 50) };
+        } else {
+          const s = (t - 0.5) * 2;
+          return { r: Math.floor(255 - s * 200), g: Math.floor(20 + s * 100), b: Math.floor(150 + s * 105) };
+        }
       }
       default:
         return { r: 255, g: 255, b: 255 };
@@ -1151,16 +1234,34 @@ function HalleyFractal() {
   }, [bounds]); // Re-attach when bounds change
 
   const handleZoom = (factor) => {
+    const { width, height } = canvasDimensions;
+    const canvasAspect = width / height;
+
     const centerX = (bounds.minX + bounds.maxX) / 2;
     const centerY = (bounds.minY + bounds.maxY) / 2;
+
+    // Zoom both dimensions equally
     const rangeX = (bounds.maxX - bounds.minX) / factor;
     const rangeY = (bounds.maxY - bounds.minY) / factor;
-    
+
+    // Ensure aspect ratio is maintained
+    let newRangeX = rangeX;
+    let newRangeY = rangeY;
+
+    const newAspect = newRangeX / newRangeY;
+    if (Math.abs(newAspect - canvasAspect) > 0.01) {
+      if (canvasAspect > 1) {
+        newRangeX = newRangeY * canvasAspect;
+      } else {
+        newRangeY = newRangeX / canvasAspect;
+      }
+    }
+
     setBounds({
-      minX: centerX - rangeX / 2,
-      maxX: centerX + rangeX / 2,
-      minY: centerY - rangeY / 2,
-      maxY: centerY + rangeY / 2
+      minX: centerX - newRangeX / 2,
+      maxX: centerX + newRangeX / 2,
+      minY: centerY - newRangeY / 2,
+      maxY: centerY + newRangeY / 2
     });
   };
 
@@ -1391,6 +1492,11 @@ function HalleyFractal() {
                 <option value="ocean">Ocean</option>
                 <option value="neon">Neon</option>
                 <option value="plasma">Plasma</option>
+                <option value="viridis">Viridis</option>
+                <option value="sunset">Sunset</option>
+                <option value="copper">Copper</option>
+                <option value="aurora">Aurora</option>
+                <option value="cyberpunk">Cyberpunk</option>
                 <option value="grayscale">Grayscale</option>
               </select>
             </div>
