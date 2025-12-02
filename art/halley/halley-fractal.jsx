@@ -9,22 +9,24 @@ function HalleyFractal() {
       formula: 'z³ - 1',
       maxIter: 50,
       colorScheme: 'rainbow',
-      bounds: { minX: -3, maxX: 3, minY: -3, maxY: 3 }
+      bounds: { minX: -3, maxX: 3, minY: -3, maxY: 3 },
+      aspectRatio: '1:1'
     };
-    
+
     if (typeof window === 'undefined') return defaults;
-    
+
     try {
       const hash = window.location.hash.slice(1);
       if (!hash) return defaults;
-      
+
       const params = new URLSearchParams(hash);
-      
+
       return {
         resolution: parseInt(params.get('res')) || defaults.resolution,
         formula: params.get('f') ? decodeURIComponent(params.get('f')) : defaults.formula,
         maxIter: parseInt(params.get('iter')) || defaults.maxIter,
         colorScheme: params.get('color') || defaults.colorScheme,
+        aspectRatio: params.get('aspect') || defaults.aspectRatio,
         bounds: {
           minX: parseFloat(params.get('x1')) || defaults.bounds.minX,
           maxX: parseFloat(params.get('x2')) || defaults.bounds.maxX,
@@ -36,20 +38,33 @@ function HalleyFractal() {
       return defaults;
     }
   };
-  
+
   const initialState = getInitialState();
-  
+
   const [resolution, setResolution] = useState(initialState.resolution);
   const [formula, setFormula] = useState(initialState.formula);
   const [maxIter, setMaxIter] = useState(initialState.maxIter);
   const [colorScheme, setColorScheme] = useState(initialState.colorScheme);
   const [bounds, setBounds] = useState(initialState.bounds);
-  
+  const [aspectRatio, setAspectRatio] = useState(initialState.aspectRatio);
+
   const [isRendering, setIsRendering] = useState(false);
   const [progress, setProgress] = useState(0);
   const [isExporting, setIsExporting] = useState(false);
   const [iterationData, setIterationData] = useState(null);
   const [showCopied, setShowCopied] = useState(false);
+
+  // Calculate canvas dimensions based on aspect ratio
+  const canvasDimensions = useMemo(() => {
+    const ratios = {
+      '1:1': { width: resolution, height: resolution },
+      '4:3': { width: resolution, height: Math.round(resolution * 3 / 4) },
+      '16:9': { width: resolution, height: Math.round(resolution * 9 / 16) },
+      '21:9': { width: resolution, height: Math.round(resolution * 9 / 21) },
+      '9:16': { width: Math.round(resolution * 9 / 16), height: resolution }
+    };
+    return ratios[aspectRatio] || ratios['1:1'];
+  }, [resolution, aspectRatio]);
 
   // Update URL hash when state changes
   useEffect(() => {
@@ -61,6 +76,7 @@ function HalleyFractal() {
     const params = new URLSearchParams();
     params.set('f', encodeURIComponent(formula));
     params.set('res', resolution.toString());
+    params.set('aspect', aspectRatio);
     params.set('iter', maxIter.toString());
     params.set('color', colorScheme);
     params.set('x1', bounds.minX.toFixed(10));
@@ -72,7 +88,7 @@ function HalleyFractal() {
     if (window.location.hash.slice(1) !== newHash) {
       window.history.replaceState(null, '', `#${newHash}`);
     }
-  }, [formula, resolution, maxIter, colorScheme, bounds]);
+  }, [formula, resolution, aspectRatio, maxIter, colorScheme, bounds]);
 
   // Copy URL to clipboard
   const copyShareLink = async () => {
@@ -136,6 +152,16 @@ function HalleyFractal() {
     };
   };
 
+  const cSinh = (z) => ({
+    re: Math.sinh(z.re) * Math.cos(z.im),
+    im: Math.cosh(z.re) * Math.sin(z.im)
+  });
+
+  const cCosh = (z) => ({
+    re: Math.cosh(z.re) * Math.cos(z.im),
+    im: Math.sinh(z.re) * Math.sin(z.im)
+  });
+
   // Function definitions with their derivatives and descriptions
   const functions = {
     'z³ - 1': {
@@ -186,6 +212,12 @@ function HalleyFractal() {
       d2f: (z) => cMul({ re: 12, im: 0 }, cPow(z, 2)),
       desc: 'Strong symmetry breaking; wide chaotic filaments'
     },
+    'z⁴ + z² - 1': {
+      f: (z) => cSub(cAdd(cPow(z, 4), cPow(z, 2)), { re: 1, im: 0 }),
+      df: (z) => cAdd(cMul({ re: 4, im: 0 }, cPow(z, 3)), cMul({ re: 2, im: 0 }, z)),
+      d2f: (z) => cAdd(cMul({ re: 12, im: 0 }, cPow(z, 2)), { re: 2, im: 0 }),
+      desc: 'Complex basin boundaries with multiple attractors'
+    },
     'z⁵ + z - 1': {
       f: (z) => cSub(cAdd(cPow(z, 5), z), { re: 1, im: 0 }),
       df: (z) => cAdd(cMul({ re: 5, im: 0 }, cPow(z, 4)), { re: 1, im: 0 }),
@@ -203,6 +235,12 @@ function HalleyFractal() {
       df: (z) => cSub(cMul({ re: 5, im: 0 }, cPow(z, 4)), cMul({ re: 2, im: 0 }, z)),
       d2f: (z) => cSub(cMul({ re: 20, im: 0 }, cPow(z, 3)), { re: 2, im: 0 }),
       desc: 'Rich interactions between roots; very fine detail'
+    },
+    'z⁵ - z³': {
+      f: (z) => cSub(cPow(z, 5), cPow(z, 3)),
+      df: (z) => cSub(cMul({ re: 5, im: 0 }, cPow(z, 4)), cMul({ re: 3, im: 0 }, cPow(z, 2))),
+      d2f: (z) => cSub(cMul({ re: 20, im: 0 }, cPow(z, 3)), cMul({ re: 6, im: 0 }, z)),
+      desc: 'Intricate dendritic structures with rich detail'
     },
     'z⁶ + z³ - 1': {
       f: (z) => cSub(cAdd(cPow(z, 6), cPow(z, 3)), { re: 1, im: 0 }),
@@ -234,19 +272,11 @@ function HalleyFractal() {
       d2f: (z) => cMul({ re: 6, im: 0 }, z),
       desc: 'General complex-parameter form; tunable chaos'
     },
-    '1/(z² - 1)': {
-      f: (z) => cDiv({ re: 1, im: 0 }, cSub(cPow(z, 2), { re: 1, im: 0 })),
-      df: (z) => {
-        const denom = cPow(cSub(cPow(z, 2), { re: 1, im: 0 }), 2);
-        return cDiv(cMul({ re: -2, im: 0 }, z), denom);
-      },
-      d2f: (z) => {
-        const z2m1 = cSub(cPow(z, 2), { re: 1, im: 0 });
-        const z2m1_3 = cMul(cMul(z2m1, z2m1), z2m1);
-        const num = cSub(cMul({ re: 6, im: 0 }, cPow(z, 2)), { re: -2, im: 0 });
-        return cDiv(num, z2m1_3);
-      },
-      desc: 'Poles at ±1 create explosive divergence regions'
+    'z⁴ + (0.2+0.4i)': {
+      f: (z) => cAdd(cPow(z, 4), { re: 0.2, im: 0.4 }),
+      df: (z) => cMul({ re: 4, im: 0 }, cPow(z, 3)),
+      d2f: (z) => cMul({ re: 12, im: 0 }, cPow(z, 2)),
+      desc: 'Four-fold symmetry with complex asymmetry'
     },
     '(z² + 1)/(z³ - 1)': {
       f: (z) => cDiv(cAdd(cPow(z, 2), { re: 1, im: 0 }), cSub(cPow(z, 3), { re: 1, im: 0 })),
@@ -338,6 +368,18 @@ function HalleyFractal() {
         return cAdd(term1, term2);
       },
       desc: 'Curved, chaotic zero sets; swirling fractal structures'
+    },
+    'sinh(z) - 1': {
+      f: (z) => cSub(cSinh(z), { re: 1, im: 0 }),
+      df: (z) => cCosh(z),
+      d2f: (z) => cSinh(z),
+      desc: 'Hyperbolic symmetries; different structure from trig functions'
+    },
+    'z·exp(z) - 1': {
+      f: (z) => cSub(cMul(z, cExp(z)), { re: 1, im: 0 }),
+      df: (z) => cAdd(cExp(z), cMul(z, cExp(z))),
+      d2f: (z) => cAdd(cMul({ re: 2, im: 0 }, cExp(z)), cMul(z, cExp(z))),
+      desc: 'Lambert W function related; exotic mixed patterns'
     }
   };
 
@@ -427,48 +469,49 @@ function HalleyFractal() {
   const renderFractal = useCallback(async () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
+
     const ctx = canvas.getContext('2d');
     const func = functions[formula];
     if (!func) return;
-    
+
     setIsRendering(true);
     setProgress(0);
-    
-    const imageData = ctx.createImageData(resolution, resolution);
+
+    const { width, height } = canvasDimensions;
+    const imageData = ctx.createImageData(width, height);
     const epsilon = 0.00001;
-    
+
     const { minX, maxX, minY, maxY } = bounds;
-    const xStep = (maxX - minX) / resolution;
-    const yStep = (maxY - minY) / resolution;
-    
+    const xStep = (maxX - minX) / width;
+    const yStep = (maxY - minY) / height;
+
     // Process in chunks for responsiveness
-    const chunkSize = Math.max(1, Math.floor(resolution / 32));
-    
-    for (let startRow = 0; startRow < resolution; startRow += chunkSize) {
-      const endRow = Math.min(startRow + chunkSize, resolution);
-      
+    const chunkSize = Math.max(1, Math.floor(height / 32));
+
+    for (let startRow = 0; startRow < height; startRow += chunkSize) {
+      const endRow = Math.min(startRow + chunkSize, height);
+
       for (let py = startRow; py < endRow; py++) {
-        for (let px = 0; px < resolution; px++) {
+        for (let px = 0; px < width; px++) {
           const x = minX + px * xStep;
           const y = maxY - py * yStep;
-          
+
           let z = { re: x, im: y };
           let iterations = 0;
           let prevMag = 0;
-          
+
           for (let k = 0; k < maxIter; k++) {
             try {
               z = halleyIterate(z, func);
               const mag = z.re * z.re + z.im * z.im;
-              
+
               if (k > 0 && Math.abs(mag - prevMag) < epsilon) {
                 iterations = k;
                 break;
               }
               prevMag = mag;
               iterations = k + 1;
-              
+
               if (mag > 1e10 || isNaN(mag)) {
                 iterations = maxIter;
                 break;
@@ -478,24 +521,24 @@ function HalleyFractal() {
               break;
             }
           }
-          
+
           const color = getColor(iterations, maxIter, colorScheme);
-          const idx = (py * resolution + px) * 4;
+          const idx = (py * width + px) * 4;
           imageData.data[idx] = color.r;
           imageData.data[idx + 1] = color.g;
           imageData.data[idx + 2] = color.b;
           imageData.data[idx + 3] = 255;
         }
       }
-      
-      setProgress(Math.floor((endRow / resolution) * 100));
+
+      setProgress(Math.floor((endRow / height) * 100));
       await new Promise(resolve => setTimeout(resolve, 0));
     }
-    
+
     ctx.putImageData(imageData, 0, 0);
     setIsRendering(false);
     setProgress(100);
-  }, [resolution, formula, maxIter, colorScheme, bounds]);
+  }, [formula, maxIter, colorScheme, bounds, canvasDimensions]);
 
   // Marching Squares lookup table for contour tracing
   const MS_EDGES = [
@@ -686,18 +729,18 @@ function HalleyFractal() {
     setIsExporting(true);
     setProgress(0);
 
-    const res = resolution;
+    const { width, height } = canvasDimensions;
     const epsilon = 0.00001;
-    
+
     const { minX, maxX, minY, maxY } = bounds;
-    const xStep = (maxX - minX) / res;
-    const yStep = (maxY - minY) / res;
-    
+    const xStep = (maxX - minX) / width;
+    const yStep = (maxY - minY) / height;
+
     // Phase 1: Calculate iteration grid
-    const iterations = new Float32Array(res * res);
-    
-    for (let py = 0; py < res; py++) {
-      for (let px = 0; px < res; px++) {
+    const iterations = new Float32Array(width * height);
+
+    for (let py = 0; py < height; py++) {
+      for (let px = 0; px < width; px++) {
         const x = minX + px * xStep;
         const y = maxY - py * yStep;
         
@@ -726,12 +769,13 @@ function HalleyFractal() {
             break;
           }
         }
-        
-        iterations[py * res + px] = iter;
+
+
+        iterations[py * width + px] = iter;
       }
-      
+
       if (py % 32 === 0) {
-        setProgress(Math.floor((py / res) * 40));
+        setProgress(Math.floor((py / height) * 40));
         await new Promise(resolve => setTimeout(resolve, 0));
       }
     }
@@ -763,17 +807,17 @@ function HalleyFractal() {
       }
       
       // Create binary mask for this color band
-      const mask = new Uint8Array(res * res);
+      const mask = new Uint8Array(width * height);
       for (let i = 0; i < iterations.length; i++) {
         mask[i] = levels.includes(iterations[i]) ? 1 : 0;
       }
-      
+
       // Trace contours for this band
-      const segments = traceContours(mask, res, res, 0.5);
+      const segments = traceContours(mask, width, height, 0.5);
       const paths = connectSegments(segments);
-      
+
       // Simplify and smooth paths
-      const simplifyTolerance = Math.max(0.3, res / 800);
+      const simplifyTolerance = Math.max(0.3, Math.max(width, height) / 800);
       const pathStrings = paths
         .map(p => simplifyPath(p, simplifyTolerance))
         .filter(p => p.length >= 3)
@@ -791,7 +835,7 @@ function HalleyFractal() {
     // Phase 4: Build SVG with filled regions
     // For proper filling, we need to use a different approach - render as layered regions
     let svgContent = `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${res} ${res}" width="${res}" height="${res}">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">
   <title>Halley's Method Fractal - ${formula}</title>
   <desc>Formula: ${formula} | Bounds: [${minX.toFixed(6)}, ${maxX.toFixed(6)}] × [${minY.toFixed(6)}, ${maxY.toFixed(6)}] | Iterations: ${maxIter} | Traced with smooth curves</desc>
   <rect width="100%" height="100%" fill="black"/>
@@ -800,14 +844,14 @@ function HalleyFractal() {
     // Create filled regions by tracing each iteration level as filled polygons
     // Group adjacent cells into polygon regions
     const regionColors = new Map();
-    
+
     // Flood fill to find connected regions
-    const visited = new Uint8Array(res * res);
+    const visited = new Uint8Array(width * height);
     const regions = [];
-    
-    for (let y = 0; y < res; y++) {
-      for (let x = 0; x < res; x++) {
-        const idx = y * res + x;
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const idx = y * width + x;
         if (visited[idx]) continue;
         
         const iter = iterations[idx];
@@ -825,15 +869,15 @@ function HalleyFractal() {
         
         while (stack.length > 0) {
           const { x: cx, y: cy } = stack.pop();
-          const cidx = cy * res + cx;
-          
-          if (cx < 0 || cx >= res || cy < 0 || cy >= res) continue;
+          const cidx = cy * width + cx;
+
+          if (cx < 0 || cx >= width || cy < 0 || cy >= height) continue;
           if (visited[cidx]) continue;
           if (iterations[cidx] !== iter) continue;
-          
+
           visited[cidx] = 1;
           region.push({ x: cx, y: cy });
-          
+
           stack.push({ x: cx + 1, y: cy });
           stack.push({ x: cx - 1, y: cy });
           stack.push({ x: cx, y: cy + 1 });
@@ -913,7 +957,7 @@ function HalleyFractal() {
     setProgress(100);
     
     return svgContent;
-  }, [formula, maxIter, colorScheme, bounds, resolution]);
+  }, [formula, maxIter, colorScheme, bounds, canvasDimensions]);
 
   // Generate SVG with true vector contour paths (outline style)
   const generateContourSVG = useCallback(async () => {
@@ -923,18 +967,18 @@ function HalleyFractal() {
     setIsExporting(true);
     setProgress(0);
 
-    const res = resolution;
+    const { width, height } = canvasDimensions;
     const epsilon = 0.00001;
-    
+
     const { minX, maxX, minY, maxY } = bounds;
-    const xStep = (maxX - minX) / res;
-    const yStep = (maxY - minY) / res;
-    
+    const xStep = (maxX - minX) / width;
+    const yStep = (maxY - minY) / height;
+
     // Calculate iteration grid
-    const iterations = new Float32Array(res * res);
-    
-    for (let py = 0; py < res; py++) {
-      for (let px = 0; px < res; px++) {
+    const iterations = new Float32Array(width * height);
+
+    for (let py = 0; py < height; py++) {
+      for (let px = 0; px < width; px++) {
         const x = minX + px * xStep;
         const y = maxY - py * yStep;
         
@@ -963,22 +1007,23 @@ function HalleyFractal() {
             break;
           }
         }
-        
-        iterations[py * res + px] = iter;
+
+
+        iterations[py * width + px] = iter;
       }
-      
+
       if (py % 32 === 0) {
-        setProgress(Math.floor((py / res) * 50));
+        setProgress(Math.floor((py / height) * 50));
         await new Promise(resolve => setTimeout(resolve, 0));
       }
     }
-    
+
     // Find iteration levels to trace
     const iterSet = new Set(iterations);
     const iterLevels = Array.from(iterSet).sort((a, b) => a - b);
-    
+
     let svgContent = `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${res} ${res}" width="${res}" height="${res}">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">
   <title>Halley's Method Fractal Contours - ${formula}</title>
   <desc>Formula: ${formula} | Contour-traced vector paths</desc>
   <rect width="100%" height="100%" fill="black"/>
@@ -992,11 +1037,11 @@ function HalleyFractal() {
       const colorStr = `rgb(${color.r},${color.g},${color.b})`;
       
       if (colorStr === 'rgb(0,0,0)') continue;
-      
-      const segments = traceContours(iterations, res, res, level + 0.5);
+
+      const segments = traceContours(iterations, width, height, level + 0.5);
       const paths = connectSegments(segments);
-      
-      const simplifyTolerance = Math.max(0.2, res / 1000);
+
+      const simplifyTolerance = Math.max(0.2, Math.max(width, height) / 1000);
       
       for (const path of paths) {
         if (path.length < 3) continue;
@@ -1019,7 +1064,7 @@ function HalleyFractal() {
     setProgress(100);
     
     return svgContent;
-  }, [formula, maxIter, colorScheme, bounds, resolution]);
+  }, [formula, maxIter, colorScheme, bounds, canvasDimensions]);
 
   const downloadTracedSVG = async () => {
     const svgContent = await generateTracedSVG();
@@ -1055,9 +1100,10 @@ function HalleyFractal() {
   const downloadPNG = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
+
     const link = document.createElement('a');
-    link.download = `halley-fractal-${formula.replace(/[^a-z0-9]/gi, '')}-${resolution}px-${Date.now()}.png`;
+    const { width, height } = canvasDimensions;
+    link.download = `halley-fractal-${formula.replace(/[^a-z0-9]/gi, '')}-${width}x${height}-${Date.now()}.png`;
     link.href = canvas.toDataURL('image/png');
     document.body.appendChild(link);
     link.click();
@@ -1136,14 +1182,15 @@ function HalleyFractal() {
   const handleCanvasClick = (e) => {
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
-    const scaleX = resolution / rect.width;
-    const scaleY = resolution / rect.height;
-    
+    const { width, height } = canvasDimensions;
+    const scaleX = width / rect.width;
+    const scaleY = height / rect.height;
+
     const px = (e.clientX - rect.left) * scaleX;
     const py = (e.clientY - rect.top) * scaleY;
-    
-    const x = bounds.minX + (px / resolution) * (bounds.maxX - bounds.minX);
-    const y = bounds.maxY - (py / resolution) * (bounds.maxY - bounds.minY);
+
+    const x = bounds.minX + (px / width) * (bounds.maxX - bounds.minX);
+    const y = bounds.maxY - (py / height) * (bounds.maxY - bounds.minY);
     
     const rangeX = (bounds.maxX - bounds.minX) / 2;
     const rangeY = (bounds.maxY - bounds.minY) / 2;
@@ -1176,8 +1223,8 @@ function HalleyFractal() {
             <div className="relative bg-black rounded-lg overflow-hidden shadow-2xl shadow-purple-500/20">
               <canvas
                 ref={canvasRef}
-                width={resolution}
-                height={resolution}
+                width={canvasDimensions.width}
+                height={canvasDimensions.height}
                 onClick={handleCanvasClick}
                 className="w-full cursor-crosshair"
                 style={{ imageRendering: 'pixelated' }}
@@ -1186,13 +1233,16 @@ function HalleyFractal() {
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                   <div className="text-center">
                     <div className="w-48 h-2 bg-gray-700 rounded-full overflow-hidden">
-                      <div 
+                      <div
                         className={`h-full transition-all ${isExporting ? 'bg-gradient-to-r from-green-500 to-emerald-500' : 'bg-gradient-to-r from-purple-500 to-pink-500'}`}
                         style={{ width: `${progress}%` }}
                       />
                     </div>
                     <p className="mt-2 text-sm">
                       {isExporting ? 'Generating SVG...' : 'Rendering...'} {progress}%
+                    </p>
+                    <p className="mt-1 text-xs text-gray-400">
+                      Adjust settings to restart
                     </p>
                   </div>
                 </div>
@@ -1302,22 +1352,22 @@ function HalleyFractal() {
                   ))}
                 </optgroup>
                 <optgroup label="Symmetry Breaking">
-                  {['z³ - 0.5', 'z⁴ - 2', 'z⁵ + z - 1', 'z³ - z', 'z⁵ - z²', 'z⁶ + z³ - 1'].map(f => (
+                  {['z³ - 0.5', 'z⁴ - 2', 'z⁴ + z² - 1', 'z⁵ + z - 1', 'z³ - z', 'z⁵ - z²', 'z⁵ - z³', 'z⁶ + z³ - 1'].map(f => (
                     <option key={f} value={f}>{f}</option>
                   ))}
                 </optgroup>
                 <optgroup label="Complex Parameter (Julia-like)">
-                  {['z³ + (0.3+0.5i)', 'z³ + (-0.2+0.8i)', 'z³ + (1+i)', 'z³ + (0.5+0.2i)'].map(f => (
+                  {['z³ + (0.3+0.5i)', 'z³ + (-0.2+0.8i)', 'z³ + (1+i)', 'z³ + (0.5+0.2i)', 'z⁴ + (0.2+0.4i)'].map(f => (
                     <option key={f} value={f}>{f}</option>
                   ))}
                 </optgroup>
                 <optgroup label="Rational (Poles & Roots)">
-                  {['1/(z² - 1)', '(z² + 1)/(z³ - 1)', '(z³ - 2)/(z - 1)'].map(f => (
+                  {['(z² + 1)/(z³ - 1)', '(z³ - 2)/(z - 1)'].map(f => (
                     <option key={f} value={f}>{f}</option>
                   ))}
                 </optgroup>
                 <optgroup label="Transcendental">
-                  {['sin(z)', 'cos(z) - 1', 'exp(z) - 1', 'z³ + sin(z)', 'z⁴ + exp(-z)', 'sin(z²) - 1'].map(f => (
+                  {['sin(z)', 'cos(z) - 1', 'exp(z) - 1', 'sinh(z) - 1', 'z³ + sin(z)', 'z⁴ + exp(-z)', 'sin(z²) - 1', 'z·exp(z) - 1'].map(f => (
                     <option key={f} value={f}>{f}</option>
                   ))}
                 </optgroup>
@@ -1344,15 +1394,34 @@ function HalleyFractal() {
                 <option value="grayscale">Grayscale</option>
               </select>
             </div>
-            
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Aspect Ratio</label>
+              <div className="grid grid-cols-5 gap-1">
+                {['1:1', '4:3', '16:9', '21:9', '9:16'].map((ratio) => (
+                  <button
+                    key={ratio}
+                    onClick={() => setAspectRatio(ratio)}
+                    className={`px-2 py-1.5 text-xs rounded transition ${
+                      aspectRatio === ratio
+                        ? 'bg-gray-600 text-white'
+                        : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                    }`}
+                  >
+                    {ratio}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-medium mb-1">
-                Resolution: {resolution} × {resolution}px
+                Resolution: {canvasDimensions.width} × {canvasDimensions.height}px
               </label>
               <input
                 type="range"
                 min="100"
-                max="2400"
+                max="18000"
                 step="100"
                 value={resolution}
                 onChange={(e) => setResolution(parseInt(e.target.value))}
@@ -1360,10 +1429,13 @@ function HalleyFractal() {
               />
               <div className="flex justify-between text-xs text-gray-500 mt-1">
                 <span>100px</span>
-                <span>2400px</span>
+                <span>18,000px</span>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                {resolution <= 300 ? '⚡ Fast' : resolution <= 600 ? '⏱️ Medium' : resolution <= 1200 ? '🐢 Slow' : '🐌 Very slow'}
+                {resolution <= 300 ? '⚡ Fast' : resolution <= 600 ? '⏱️ Medium' : resolution <= 1200 ? '🐢 Slow' : resolution <= 3600 ? '🐌 Very slow' : '⏳ Extremely slow'}
+              </p>
+              <p className="text-xs text-blue-400 mt-1">
+                Print size @ 300 DPI: {(canvasDimensions.width / 300).toFixed(1)}" × {(canvasDimensions.height / 300).toFixed(1)}"
               </p>
             </div>
             
@@ -1491,13 +1563,13 @@ function HalleyFractal() {
               
               <div className="mt-3 p-2 bg-gray-800 rounded-lg">
                 <p className="text-xs text-gray-400">
-                  <strong className="text-orange-400">PNG:</strong> Raster image. Fast, exact pixel output.
+                  <strong className="text-orange-400">PNG:</strong> Fast, exact pixel output.
                 </p>
                 <p className="text-xs text-gray-400 mt-1">
-                  <strong className="text-gray-300">Traced SVG:</strong> Filled vector regions. Best for printing.
+                  <strong className="text-gray-300">Traced SVG:</strong> Filled vector regions.
                 </p>
                 <p className="text-xs text-gray-400 mt-1">
-                  <strong className="text-gray-300">Contour SVG:</strong> Smooth curve outlines. Smaller files, artistic look.
+                  <strong className="text-gray-300">Contour SVG:</strong> Smooth curve outlines.
                 </p>
                 <p className="text-xs text-gray-500 mt-2 italic">
                   All exports use current resolution setting.
