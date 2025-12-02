@@ -2,6 +2,21 @@ function HalleyFractal() {
   const canvasRef = useRef(null);
   const isInitialized = useRef(false);
   
+  // Valid options for security validation
+  const VALID_FORMULAS = [
+    'z³ - 1', 'z⁴ - 1', 'z⁵ - 1', 'z⁶ - 1', 'z⁷ - 1', 'z⁸ - 1',
+    'z³ - 0.5', 'z⁴ - 2', 'z⁴ + z² - 1', 'z⁵ + z - 1', 'z³ - z', 'z⁵ - z²', 'z⁵ - z³', 'z⁶ + z³ - 1',
+    'z³ + (0.3+0.5i)', 'z³ + (-0.2+0.8i)', 'z³ + (1+i)', 'z³ + (0.5+0.2i)', 'z⁴ + (0.2+0.4i)',
+    '(z² + 1)/(z³ - 1)', '(z³ - 2)/(z - 1)',
+    'sin(z)', 'cos(z) - 1', 'exp(z) - 1', 'sinh(z) - 1', 'z³ + sin(z)', 'z⁴ + exp(-z)', 'sin(z²) - 1', 'z·exp(z) - 1'
+  ];
+
+  const VALID_COLOR_SCHEMES = [
+    'rainbow', 'fire', 'ocean', 'neon', 'plasma', 'viridis', 'sunset', 'copper', 'aurora', 'cyberpunk', 'grayscale'
+  ];
+
+  const VALID_ASPECT_RATIOS = ['1:1', '4:3', '16:9', '21:9', '9:16'];
+
   // Parse URL hash on initial load
   const getInitialState = () => {
     const defaults = {
@@ -21,20 +36,42 @@ function HalleyFractal() {
 
       const params = new URLSearchParams(hash);
 
-      return {
-        resolution: parseInt(params.get('res')) || defaults.resolution,
-        formula: params.get('f') ? decodeURIComponent(params.get('f')) : defaults.formula,
-        maxIter: parseInt(params.get('iter')) || defaults.maxIter,
-        colorScheme: params.get('color') || defaults.colorScheme,
-        aspectRatio: params.get('aspect') || defaults.aspectRatio,
-        bounds: {
-          minX: parseFloat(params.get('x1')) || defaults.bounds.minX,
-          maxX: parseFloat(params.get('x2')) || defaults.bounds.maxX,
-          minY: parseFloat(params.get('y1')) || defaults.bounds.minY,
-          maxY: parseFloat(params.get('y2')) || defaults.bounds.maxY
-        }
+      // Validate and sanitize resolution (100-18000)
+      const res = parseInt(params.get('res'));
+      const resolution = (res && res >= 100 && res <= 18000) ? res : defaults.resolution;
+
+      // Validate formula against whitelist
+      const f = params.get('f') ? decodeURIComponent(params.get('f')) : defaults.formula;
+      const formula = VALID_FORMULAS.includes(f) ? f : defaults.formula;
+
+      // Validate and sanitize maxIter (10-200)
+      const iter = parseInt(params.get('iter'));
+      const maxIter = (iter && iter >= 10 && iter <= 200) ? iter : defaults.maxIter;
+
+      // Validate colorScheme against whitelist
+      const color = params.get('color');
+      const colorScheme = VALID_COLOR_SCHEMES.includes(color) ? color : defaults.colorScheme;
+
+      // Validate aspectRatio against whitelist
+      const aspect = params.get('aspect');
+      const aspectRatio = VALID_ASPECT_RATIOS.includes(aspect) ? aspect : defaults.aspectRatio;
+
+      // Validate and sanitize bounds (finite numbers only)
+      const x1 = parseFloat(params.get('x1'));
+      const x2 = parseFloat(params.get('x2'));
+      const y1 = parseFloat(params.get('y1'));
+      const y2 = parseFloat(params.get('y2'));
+
+      const bounds = {
+        minX: (Number.isFinite(x1) && Math.abs(x1) < 1e10) ? x1 : defaults.bounds.minX,
+        maxX: (Number.isFinite(x2) && Math.abs(x2) < 1e10) ? x2 : defaults.bounds.maxX,
+        minY: (Number.isFinite(y1) && Math.abs(y1) < 1e10) ? y1 : defaults.bounds.minY,
+        maxY: (Number.isFinite(y2) && Math.abs(y2) < 1e10) ? y2 : defaults.bounds.maxY
       };
+
+      return { resolution, formula, maxIter, colorScheme, aspectRatio, bounds };
     } catch (e) {
+      console.warn('Invalid URL hash parameters, using defaults');
       return defaults;
     }
   };
