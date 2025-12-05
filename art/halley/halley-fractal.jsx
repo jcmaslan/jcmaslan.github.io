@@ -1508,6 +1508,19 @@ function HalleyFractal() {
     setBounds({ minX: -3, maxX: 3, minY: -3, maxY: 3 });
   };
 
+  const toggleFullscreen = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    if (!document.fullscreenElement) {
+      canvas.requestFullscreen().catch(err => {
+        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4">
       <div className="max-w-4xl mx-auto">
@@ -1581,6 +1594,15 @@ function HalleyFractal() {
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
                     <path d="M3 3v5h5"/>
+                  </svg>
+                </button>
+                <button
+                  onClick={toggleFullscreen}
+                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition"
+                  title="Toggle Fullscreen"
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
                   </svg>
                 </button>
               </div>
