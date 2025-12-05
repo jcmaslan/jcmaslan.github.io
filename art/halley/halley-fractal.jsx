@@ -8,14 +8,90 @@ function HalleyFractal() {
     'z³ - 0.5', 'z⁴ - 2', 'z⁴ + z² - 1', 'z⁵ + z - 1', 'z³ - z', 'z⁵ - z²', 'z⁵ - z³', 'z⁶ + z³ - 1',
     'z³ + (0.3+0.5i)', 'z³ + (-0.2+0.8i)', 'z³ + (1+i)', 'z³ + (0.5+0.2i)', 'z⁴ + (0.2+0.4i)',
     '(z² + 1)/(z³ - 1)', '(z³ - 2)/(z - 1)',
-    'sin(z)', 'cos(z) - 1', 'exp(z) - 1', 'sinh(z) - 1', 'z³ + sin(z)', 'z⁴ + exp(-z)', 'sin(z²) - 1', 'z·exp(z) - 1'
+    'sin(z)', 'cos(z) - 1', 'exp(z) - 1', 'sinh(z) - 1', 'z³ + sin(z)', 'sin(z)·exp(z) - 1', 'z⁴ + exp(-z)', 'sin(z²) - 1', 'z·exp(z) - 1'
   ];
 
   const VALID_COLOR_SCHEMES = [
-    'rainbow', 'fire', 'ocean', 'neon', 'plasma', 'viridis', 'sunset', 'copper', 'aurora', 'cyberpunk', 'grayscale'
+    'rainbow', 'fire', 'ocean', 'neon', 'plasma', 'viridis', 'sunset', 'copper', 'aurora', 'cyberpunk', 'marin', 'grayscale', 'hsv-8', 'hsv-16', 'hsv-32'
   ];
 
   const VALID_ASPECT_RATIOS = ['1:1', '4:3', '16:9', '21:9', '9:16'];
+
+  // Curated presets with interesting parameter combinations
+  const PRESETS = {
+    'default': {
+      name: 'Default View',
+      formula: 'z³ - 1',
+      bounds: { minX: -3, maxX: 3, minY: -3, maxY: 3 },
+      aspectRatio: '1:1',
+      colorScheme: 'rainbow',
+      maxIter: 50,
+      resolution: 300,
+      desc: 'Classic threefold symmetry view'
+    },
+    'frog': {
+      name: 'Frog',
+      formula: 'z⁵ - z²',
+      bounds: { minX: -0.6263950634, maxX: -0.4597957096, minY: -0.5324579177, maxY: -0.4387079177 },
+      aspectRatio: '16:9',
+      colorScheme: 'rainbow',
+      maxIter: 30,
+      resolution: 1100,
+      desc: 'Intricate frog-like structure in zoomed basin boundary'
+    },
+    'fireburst': {
+      name: 'Fireburst',
+      formula: 'sin(z²) - 1',
+      bounds: { minX: 0.0856043782, maxX: 0.1688848350, minY: -1.2730556074, maxY: -1.2261806074 },
+      aspectRatio: '16:9',
+      colorScheme: 'fire',
+      maxIter: 50,
+      resolution: 1200,
+      desc: 'Explosive radial burst pattern with swirling detail'
+    },
+    'goofy': {
+      name: 'Goofy',
+      formula: 'z·exp(z) - 1',
+      bounds: { minX: -2.4349296537, maxX: -2.1015963203, minY: -0.2447240259, maxY: 0.0886093074 },
+      aspectRatio: '1:1',
+      colorScheme: 'rainbow',
+      maxIter: 50,
+      resolution: 700,
+      desc: 'Playful organic patterns in Lambert W function fractal'
+    },
+    'reach': {
+      name: 'Reach',
+      formula: 'z⁶ + z³ - 1',
+      bounds: { minX: -0.7247869693, maxX: -0.7234868122, minY: -0.0007213406, maxY: 0.0000110813 },
+      aspectRatio: '16:9',
+      colorScheme: 'hsv-32',
+      maxIter: 50,
+      resolution: 1300,
+      desc: 'Extreme close-up revealing intricate fractal tendrils'
+    },
+    'deadhead': {
+      name: 'Deadhead',
+      formula: 'z⁵ + z - 1',
+      bounds: { minX: -0.6271252514, maxX: -0.6245201941, minY: 0.0002386781, maxY: 0.0017035218 },
+      aspectRatio: '16:9',
+      colorScheme: 'hsv-8',
+      maxIter: 50,
+      resolution: 1300,
+      evenIterOnly: true,
+      desc: 'Deep zoom into chaotic basin boundaries with vivid colors'
+    },
+    'miwok': {
+      name: 'Miwok',
+      formula: 'z⁵ + z - 1',
+      bounds: { minX: -1.0134875006, maxX: 0.3205045942, minY: -0.3613636364, maxY: 0.3886363636 },
+      aspectRatio: '16:9',
+      colorScheme: 'marin',
+      maxIter: 20,
+      resolution: 900,
+      evenIterOnly: true,
+      desc: 'Marin County landscape colors in high-contrast fractal form'
+    }
+  };
 
   // Parse URL hash on initial load
   const getInitialState = () => {
@@ -25,7 +101,8 @@ function HalleyFractal() {
       maxIter: 50,
       colorScheme: 'rainbow',
       bounds: { minX: -3, maxX: 3, minY: -3, maxY: 3 },
-      aspectRatio: '1:1'
+      aspectRatio: '1:1',
+      evenIterOnly: false
     };
 
     if (typeof window === 'undefined') return defaults;
@@ -56,6 +133,10 @@ function HalleyFractal() {
       const aspect = params.get('aspect');
       const aspectRatio = VALID_ASPECT_RATIOS.includes(aspect) ? aspect : defaults.aspectRatio;
 
+      // Validate evenIterOnly (boolean)
+      const evenParam = params.get('even');
+      const evenIterOnly = evenParam === 'true' || evenParam === '1';
+
       // Validate and sanitize bounds (finite numbers only)
       const x1 = parseFloat(params.get('x1'));
       const x2 = parseFloat(params.get('x2'));
@@ -69,7 +150,7 @@ function HalleyFractal() {
         maxY: (Number.isFinite(y2) && Math.abs(y2) < 1e10) ? y2 : defaults.bounds.maxY
       };
 
-      return { resolution, formula, maxIter, colorScheme, aspectRatio, bounds };
+      return { resolution, formula, maxIter, colorScheme, aspectRatio, evenIterOnly, bounds };
     } catch (e) {
       console.warn('Invalid URL hash parameters, using defaults');
       return defaults;
@@ -84,12 +165,31 @@ function HalleyFractal() {
   const [colorScheme, setColorScheme] = useState(initialState.colorScheme);
   const [bounds, setBounds] = useState(initialState.bounds);
   const [aspectRatio, setAspectRatio] = useState(initialState.aspectRatio);
+  const [evenIterOnly, setEvenIterOnly] = useState(initialState.evenIterOnly);
 
   const [isRendering, setIsRendering] = useState(false);
   const [progress, setProgress] = useState(0);
   const [isExporting, setIsExporting] = useState(false);
   const [iterationData, setIterationData] = useState(null);
   const [showCopied, setShowCopied] = useState(false);
+  const [selectedPreset, setSelectedPreset] = useState('default');
+
+  // Apply preset handler
+  const applyPreset = (presetKey) => {
+    const preset = PRESETS[presetKey];
+    if (!preset) return;
+
+    setSelectedPreset(presetKey);
+    setFormula(preset.formula);
+    setBounds(preset.bounds);
+    setAspectRatio(preset.aspectRatio);
+    setColorScheme(preset.colorScheme);
+    setMaxIter(preset.maxIter);
+    if (preset.resolution) {
+      setResolution(preset.resolution);
+    }
+    setEvenIterOnly(preset.evenIterOnly || false);
+  };
 
   // Calculate canvas dimensions based on aspect ratio
   const canvasDimensions = useMemo(() => {
@@ -151,6 +251,9 @@ function HalleyFractal() {
     params.set('aspect', aspectRatio);
     params.set('iter', maxIter.toString());
     params.set('color', colorScheme);
+    if (evenIterOnly) {
+      params.set('even', 'true');
+    }
     params.set('x1', bounds.minX.toFixed(10));
     params.set('x2', bounds.maxX.toFixed(10));
     params.set('y1', bounds.minY.toFixed(10));
@@ -160,7 +263,7 @@ function HalleyFractal() {
     if (window.location.hash.slice(1) !== newHash) {
       window.history.replaceState(null, '', `#${newHash}`);
     }
-  }, [formula, resolution, aspectRatio, maxIter, colorScheme, bounds]);
+  }, [formula, resolution, aspectRatio, maxIter, colorScheme, evenIterOnly, bounds]);
 
   // Copy URL to clipboard
   const copyShareLink = async () => {
@@ -422,6 +525,12 @@ function HalleyFractal() {
       d2f: (z) => cSub(cMul({ re: 6, im: 0 }, z), cSin(z)),
       desc: 'Blends polynomial basins with sinusoidal distortions'
     },
+    'sin(z)·exp(z) - 1': {
+      f: (z) => cSub(cMul(cSin(z), cExp(z)), { re: 1, im: 0 }),
+      df: (z) => cMul(cAdd(cCos(z), cSin(z)), cExp(z)),
+      d2f: (z) => cMul(cMul({ re: 2, im: 0 }, cCos(z)), cExp(z)),
+      desc: 'Highly organic branching patterns; complex interference structure'
+    },
     'z⁴ + exp(-z)': {
       f: (z) => cAdd(cPow(z, 4), cExp(cMul({ re: -1, im: 0 }, z))),
       df: (z) => cSub(cMul({ re: 4, im: 0 }, cPow(z, 3)), cExp(cMul({ re: -1, im: 0 }, z))),
@@ -543,6 +652,52 @@ function HalleyFractal() {
           return { r: Math.floor(255 - s * 200), g: Math.floor(20 + s * 100), b: Math.floor(150 + s * 105) };
         }
       }
+      case 'marin': {
+        // Redwood browns → oak tans → green grass → golden grass → fog → blue sky
+        if (t < 0.2) {
+          // Redwood: deep reddish-brown
+          const s = t * 5;
+          return { r: Math.floor(60 + s * 50), g: Math.floor(30 + s * 30), b: Math.floor(25 + s * 15) };
+        } else if (t < 0.35) {
+          // Oak: tans and browns
+          const s = (t - 0.2) * 6.67;
+          return { r: Math.floor(110 + s * 40), g: Math.floor(60 + s * 50), b: Math.floor(40 + s * 30) };
+        } else if (t < 0.5) {
+          // Winter green grass
+          const s = (t - 0.35) * 6.67;
+          return { r: Math.floor(150 - s * 70), g: Math.floor(110 + s * 50), b: Math.floor(70 - s * 20) };
+        } else if (t < 0.65) {
+          // Golden summer grass
+          const s = (t - 0.5) * 6.67;
+          return { r: Math.floor(80 + s * 130), g: Math.floor(160 + s * 50), b: Math.floor(50 + s * 30) };
+        } else if (t < 0.8) {
+          // Fog: soft grays with blue tint
+          const s = (t - 0.65) * 6.67;
+          return { r: Math.floor(210 - s * 30), g: Math.floor(210 - s * 20), b: Math.floor(80 + s * 100) };
+        } else {
+          // Blue sky
+          const s = (t - 0.8) * 5;
+          return { r: Math.floor(180 - s * 50), g: Math.floor(190 + s * 30), b: Math.floor(180 + s * 75) };
+        }
+      }
+      case 'hsv-8': {
+        // MATLAB-style: 8-color HSV palette with modulo cycling
+        const idx = Math.floor(iterations % 8);
+        const hue = (idx / 8) * 360;
+        return hslToRgb(hue, 100, 50);
+      }
+      case 'hsv-16': {
+        // 16-color HSV palette
+        const idx = Math.floor(iterations % 16);
+        const hue = (idx / 16) * 360;
+        return hslToRgb(hue, 100, 50);
+      }
+      case 'hsv-32': {
+        // 32-color HSV palette
+        const idx = Math.floor(iterations % 32);
+        const hue = (idx / 32) * 360;
+        return hslToRgb(hue, 100, 50);
+      }
       default:
         return { r: 255, g: 255, b: 255 };
     }
@@ -642,7 +797,15 @@ function HalleyFractal() {
             }
           }
 
-          const color = getColor(iterations, maxIter, colorScheme);
+          // Apply MATLAB-style even-iteration filter if enabled
+          let color;
+          if (evenIterOnly && iterations % 2 !== 0) {
+            // Odd iterations = black (high contrast mode)
+            color = { r: 0, g: 0, b: 0 };
+          } else {
+            color = getColor(iterations, maxIter, colorScheme);
+          }
+
           const idx = (py * width + px) * 4;
           imageData.data[idx] = color.r;
           imageData.data[idx + 1] = color.g;
@@ -658,7 +821,7 @@ function HalleyFractal() {
     ctx.putImageData(imageData, 0, 0);
     setIsRendering(false);
     setProgress(100);
-  }, [formula, maxIter, colorScheme, bounds, canvasDimensions]);
+  }, [formula, maxIter, colorScheme, bounds, canvasDimensions, evenIterOnly]);
 
   // Marching Squares lookup table for contour tracing
   const MS_EDGES = [
@@ -1477,6 +1640,31 @@ function HalleyFractal() {
           
           {/* Controls */}
           <div className="lg:w-64 space-y-4">
+            {/* Presets */}
+            <div className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 border border-purple-700/50 rounded-lg p-3">
+              <label className="block text-sm font-medium mb-2 text-purple-200">
+                <svg className="w-4 h-4 inline mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                  <path d="M2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+                Gallery Presets
+              </label>
+              <select
+                value={selectedPreset}
+                onChange={(e) => applyPreset(e.target.value)}
+                className="w-full bg-gray-800 border border-purple-600/50 rounded-lg px-3 py-2 text-sm mb-2"
+              >
+                {Object.entries(PRESETS).map(([key, preset]) => (
+                  <option key={key} value={key}>{preset.name}</option>
+                ))}
+              </select>
+              {PRESETS[selectedPreset] && (
+                <p className="text-xs text-purple-300 italic">
+                  {PRESETS[selectedPreset].desc}
+                </p>
+              )}
+            </div>
+
             <div>
               <label className="block text-sm font-medium mb-1">Formula</label>
               <select
@@ -1505,7 +1693,7 @@ function HalleyFractal() {
                   ))}
                 </optgroup>
                 <optgroup label="Transcendental">
-                  {['sin(z)', 'cos(z) - 1', 'exp(z) - 1', 'sinh(z) - 1', 'z³ + sin(z)', 'z⁴ + exp(-z)', 'sin(z²) - 1', 'z·exp(z) - 1'].map(f => (
+                  {['sin(z)', 'cos(z) - 1', 'exp(z) - 1', 'sinh(z) - 1', 'z³ + sin(z)', 'sin(z)·exp(z) - 1', 'z⁴ + exp(-z)', 'sin(z²) - 1', 'z·exp(z) - 1'].map(f => (
                     <option key={f} value={f}>{f}</option>
                   ))}
                 </optgroup>
@@ -1524,18 +1712,41 @@ function HalleyFractal() {
                 onChange={(e) => setColorScheme(e.target.value)}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2"
               >
-                <option value="rainbow">Rainbow</option>
-                <option value="fire">Fire</option>
-                <option value="ocean">Ocean</option>
-                <option value="neon">Neon</option>
-                <option value="plasma">Plasma</option>
-                <option value="viridis">Viridis</option>
-                <option value="sunset">Sunset</option>
-                <option value="copper">Copper</option>
-                <option value="aurora">Aurora</option>
-                <option value="cyberpunk">Cyberpunk</option>
-                <option value="grayscale">Grayscale</option>
+                <optgroup label="Smooth Gradients">
+                  <option value="rainbow">Rainbow</option>
+                  <option value="fire">Fire</option>
+                  <option value="ocean">Ocean</option>
+                  <option value="neon">Neon</option>
+                  <option value="plasma">Plasma</option>
+                  <option value="viridis">Viridis</option>
+                  <option value="sunset">Sunset</option>
+                  <option value="copper">Copper</option>
+                  <option value="aurora">Aurora</option>
+                  <option value="cyberpunk">Cyberpunk</option>
+                  <option value="marin">Marin</option>
+                  <option value="grayscale">Grayscale</option>
+                </optgroup>
+                <optgroup label="MATLAB-Style HSV (Discrete)">
+                  <option value="hsv-8">HSV-8 (Classic)</option>
+                  <option value="hsv-16">HSV-16</option>
+                  <option value="hsv-32">HSV-32</option>
+                </optgroup>
               </select>
+            </div>
+
+            <div>
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={evenIterOnly}
+                  onChange={(e) => setEvenIterOnly(e.target.checked)}
+                  className="w-4 h-4 rounded bg-gray-700 border-gray-600"
+                />
+                <span className="font-medium">Even iterations only</span>
+              </label>
+              <p className="text-xs text-gray-400 mt-1 ml-6">
+                High-contrast mode
+              </p>
             </div>
 
             <div>
