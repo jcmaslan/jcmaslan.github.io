@@ -174,6 +174,22 @@ const HalleyFractal = {
     const isRendering = ref(false);
     const progress = ref(0);
     const isExporting = ref(false);
+
+    // Resolution slider hover tooltip
+    const resolutionHover = reactive({
+      show: false,
+      value: 0,
+      x: 0,
+      y: 0
+    });
+
+    // Max iterations slider hover tooltip
+    const maxIterHover = reactive({
+      show: false,
+      value: 0,
+      x: 0,
+      y: 0
+    });
     const showCopied = ref(false);
     const selectedPreset = ref('default');
 
@@ -918,6 +934,54 @@ const HalleyFractal = {
       });
     };
 
+    const handleResolutionSliderHover = (e) => {
+      const rect = e.target.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const percentage = x / rect.width;
+
+      // Slider range: 100 to 18000, step 100
+      const min = 100;
+      const max = 18000;
+      const rawValue = min + (max - min) * percentage;
+      const steppedValue = Math.round(rawValue / 100) * 100;
+      const clampedValue = Math.max(min, Math.min(max, steppedValue));
+
+      resolutionHover.show = true;
+      resolutionHover.value = clampedValue;
+      resolutionHover.x = e.clientX;
+      resolutionHover.y = e.clientY;
+    };
+
+    const handleResolutionSliderLeave = () => {
+      resolutionHover.show = false;
+    };
+
+    const handleMaxIterSliderHover = (e) => {
+      const rect = e.target.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const percentage = x / rect.width;
+
+      // Slider range: 20 to 150, step 10
+      const min = 20;
+      const max = 150;
+      const rawValue = min + (max - min) * percentage;
+      const steppedValue = Math.round(rawValue / 10) * 10;
+      const clampedValue = Math.max(min, Math.min(max, steppedValue));
+
+      maxIterHover.show = true;
+      maxIterHover.value = clampedValue;
+      maxIterHover.x = e.clientX;
+      maxIterHover.y = e.clientY;
+    };
+
+    const handleMaxIterSliderLeave = () => {
+      maxIterHover.show = false;
+    };
+
+    const setResolution = (pixels) => {
+      resolution.value = pixels;
+    };
+
     const handleCanvasClick = (e) => {
       const canvas = canvasRef.value;
       const rect = canvas.getBoundingClientRect();
@@ -986,6 +1050,8 @@ const HalleyFractal = {
       selectedPreset,
       canvasDimensions,
       bounds,
+      resolutionHover,
+      maxIterHover,
       PRESETS,
       functions,
       applyPreset,
@@ -993,6 +1059,11 @@ const HalleyFractal = {
       downloadPNG,
       handleZoom,
       handlePan,
+      handleResolutionSliderHover,
+      handleResolutionSliderLeave,
+      handleMaxIterSliderHover,
+      handleMaxIterSliderLeave,
+      setResolution,
       handleCanvasClick,
       resetView,
       toggleFullscreen,
@@ -1003,6 +1074,38 @@ const HalleyFractal = {
 
   template: `
     <div class="min-h-screen bg-gray-900 text-white p-4">
+      <!-- Resolution Slider Hover Tooltip -->
+      <div
+        v-if="resolutionHover.show"
+        :style="{
+          position: 'fixed',
+          left: resolutionHover.x + 'px',
+          top: (resolutionHover.y - 40) + 'px',
+          transform: 'translateX(-50%)',
+          pointerEvents: 'none',
+          zIndex: 9999
+        }"
+        class="bg-gray-800 text-white px-3 py-1.5 rounded-lg shadow-lg text-sm font-medium border border-gray-600"
+      >
+        {{ resolutionHover.value }}px
+      </div>
+
+      <!-- Max Iterations Slider Hover Tooltip -->
+      <div
+        v-if="maxIterHover.show"
+        :style="{
+          position: 'fixed',
+          left: maxIterHover.x + 'px',
+          top: (maxIterHover.y - 40) + 'px',
+          transform: 'translateX(-50%)',
+          pointerEvents: 'none',
+          zIndex: 9999
+        }"
+        class="bg-gray-800 text-white px-3 py-1.5 rounded-lg shadow-lg text-sm font-medium border border-gray-600"
+      >
+        {{ maxIterHover.value }}
+      </div>
+
       <div class="max-w-4xl mx-auto">
         <h1 class="text-3xl font-bold text-center mb-2 text-white">
           Halley Art
@@ -1294,17 +1397,41 @@ const HalleyFractal = {
               <label class="block text-sm font-medium mb-1">
                 Resolution: {{ canvasDimensions.width }} × {{ canvasDimensions.height }}px
               </label>
-              <input
-                type="range"
-                min="100"
-                max="18000"
-                step="100"
-                v-model.number="resolution"
-                class="w-full"
-              />
-              <div class="flex justify-between text-xs text-gray-500 mt-1">
-                <span>100px</span>
-                <span>18,000px</span>
+              <div class="relative">
+                <input
+                  type="range"
+                  min="100"
+                  max="18000"
+                  step="100"
+                  v-model.number="resolution"
+                  @mousemove="handleResolutionSliderHover"
+                  @mouseleave="handleResolutionSliderLeave"
+                  class="w-full cursor-pointer"
+                />
+                <!-- Tick marks for common resolutions -->
+                <div class="relative w-full h-6 mt-1">
+                  <!-- 2K mark at 1920px = 10.17% -->
+                  <button @click="setResolution(1920)" class="absolute group" style="left: 10.17%; transform: translateX(-50%)">
+                    <div class="w-0.5 h-2 bg-gray-500 group-hover:bg-amber-400 mx-auto transition-colors"></div>
+                    <div class="text-xs text-gray-500 group-hover:text-amber-400 mt-0.5 whitespace-nowrap transition-colors cursor-pointer">2K</div>
+                  </button>
+                  <!-- 4K mark at 3840px = 20.89% -->
+                  <button @click="setResolution(3840)" class="absolute group" style="left: 20.89%; transform: translateX(-50%)">
+                    <div class="w-0.5 h-2 bg-gray-400 group-hover:bg-amber-400 mx-auto transition-colors"></div>
+                    <div class="text-xs text-gray-400 group-hover:text-amber-400 mt-0.5 whitespace-nowrap font-medium transition-colors cursor-pointer">4K</div>
+                  </button>
+                  <!-- 8K mark at 7680px = 42.35% -->
+                  <button @click="setResolution(7680)" class="absolute group" style="left: 42.35%; transform: translateX(-50%)">
+                    <div class="w-0.5 h-2 bg-gray-400 group-hover:bg-amber-400 mx-auto transition-colors"></div>
+                    <div class="text-xs text-gray-400 group-hover:text-amber-400 mt-0.5 whitespace-nowrap font-medium transition-colors cursor-pointer">8K</div>
+                  </button>
+                  <!-- Min/Max labels -->
+                  <button @click="setResolution(100)" class="absolute left-0 text-xs text-gray-600 hover:text-amber-400 transition-colors cursor-pointer">100</button>
+                  <button @click="setResolution(18000)" class="absolute group" style="right: 0; transform: translateX(50%)">
+                    <div class="w-0.5 h-2 bg-gray-400 group-hover:bg-amber-400 mx-auto transition-colors"></div>
+                    <div class="text-xs text-gray-400 group-hover:text-amber-400 mt-0.5 whitespace-nowrap font-medium transition-colors cursor-pointer">18K</div>
+                  </button>
+                </div>
               </div>
               <p class="text-xs text-gray-500 mt-1">
                 {{ speedIndicator }}
@@ -1324,7 +1451,9 @@ const HalleyFractal = {
                 max="150"
                 step="10"
                 v-model.number="maxIter"
-                class="w-full"
+                @mousemove="handleMaxIterSliderHover"
+                @mouseleave="handleMaxIterSliderLeave"
+                class="w-full cursor-pointer"
               />
             </div>
 
