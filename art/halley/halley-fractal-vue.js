@@ -1136,24 +1136,24 @@ const HalleyFractal = {
           <!-- Controls -->
           <div class="lg:w-64 space-y-4">
             <!-- Presets -->
-            <div class="bg-gradient-to-br from-purple-900/30 to-pink-900/30 border border-purple-700/50 rounded-lg p-3">
-              <label class="block text-sm font-medium mb-2 text-purple-200">
-                <svg class="w-4 h-4 inline mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <div class="bg-gray-800 border-l-4 border-amber-500 rounded-lg p-3 shadow-lg">
+              <label class="block text-sm font-medium mb-2 flex items-center gap-2">
+                <svg class="w-4 h-4 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M12 2L2 7l10 5 10-5-10-5z"/>
                   <path d="M2 17l10 5 10-5M2 12l10 5 10-5"/>
                 </svg>
-                Gallery Presets
+                <span>Gallery Presets</span>
               </label>
               <select
                 v-model="selectedPreset"
                 @change="applyPreset(selectedPreset)"
-                class="w-full bg-gray-800 border border-purple-600/50 rounded-lg px-3 py-2 text-sm mb-2"
+                class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm mb-2 focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
               >
                 <option v-for="(preset, key) in PRESETS" :key="key" :value="key">
                   {{ preset.name }}
                 </option>
               </select>
-              <p v-if="PRESETS[selectedPreset]" class="text-xs text-purple-300 italic">
+              <p v-if="PRESETS[selectedPreset]" class="text-xs text-gray-400 italic">
                 {{ PRESETS[selectedPreset].desc }}
               </p>
             </div>
