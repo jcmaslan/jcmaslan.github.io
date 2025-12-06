@@ -1000,7 +1000,7 @@ const HalleyFractal = {
     <div class="min-h-screen bg-gray-900 text-white p-4">
       <div class="max-w-4xl mx-auto">
         <h1 class="text-3xl font-bold text-center mb-2 text-white">
-          Halley's Method Fractal Art
+          Halley Art
         </h1>
         <p class="text-gray-400 text-center mb-6 text-sm">
           Click to zoom • Arrow keys to pan • +/- to zoom in/out
@@ -1009,7 +1009,7 @@ const HalleyFractal = {
         <div class="flex flex-col lg:flex-row gap-6">
           <!-- Canvas -->
           <div class="flex-1">
-            <div class="relative bg-black rounded-lg overflow-hidden shadow-2xl shadow-purple-500/20">
+            <div class="relative bg-black rounded-lg overflow-hidden shadow-2xl shadow-purple-500/20 ring-1 ring-gray-800">
               <canvas
                 ref="canvasRef"
                 :width="canvasDimensions.width"
@@ -1018,6 +1018,19 @@ const HalleyFractal = {
                 class="w-full cursor-crosshair"
                 style="image-rendering: pixelated;"
               />
+
+              <!-- Floating Download Button -->
+              <button
+                v-if="!isRendering"
+                @click="downloadPNG"
+                class="absolute bottom-3 right-3 p-3 bg-gradient-to-br from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110 active:scale-95 group"
+                title="Download PNG"
+              >
+                <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                </svg>
+              </button>
+
               <div v-if="isRendering" class="absolute inset-0 bg-black/50 flex items-center justify-center">
                 <div class="text-center">
                   <div class="w-48 h-2 bg-gray-700 rounded-full overflow-hidden">
@@ -1041,7 +1054,7 @@ const HalleyFractal = {
               <div class="flex gap-2 justify-center">
                 <button
                   @click="handleZoom(2)"
-                  class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition"
+                  class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all hover:scale-105 active:scale-95"
                   title="Zoom In"
                 >
                   <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1051,7 +1064,7 @@ const HalleyFractal = {
                 </button>
                 <button
                   @click="handleZoom(0.5)"
-                  class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition"
+                  class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all hover:scale-105 active:scale-95"
                   title="Zoom Out"
                 >
                   <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1061,7 +1074,7 @@ const HalleyFractal = {
                 </button>
                 <button
                   @click="resetView"
-                  class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition"
+                  class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all hover:scale-105 active:scale-95"
                   title="Reset View"
                 >
                   <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1071,7 +1084,7 @@ const HalleyFractal = {
                 </button>
                 <button
                   @click="toggleFullscreen"
-                  class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition"
+                  class="px-4 py-2 bg-gray-700 hover:bg-gray-600 hover:text-blue-400 rounded-lg transition-all hover:scale-105 active:scale-95"
                   title="Toggle Fullscreen"
                 >
                   <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1086,7 +1099,7 @@ const HalleyFractal = {
                   <div></div>
                   <button
                     @click="handlePan(0, 1)"
-                    class="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition"
+                    class="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all hover:scale-110 active:scale-95"
                     title="Pan Up"
                   >
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1096,21 +1109,21 @@ const HalleyFractal = {
                   <div></div>
                   <button
                     @click="handlePan(-1, 0)"
-                    class="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition"
+                    class="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all hover:scale-110 active:scale-95"
                     title="Pan Left"
                   >
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M19 12H5M12 19l-7-7 7-7"/>
                     </svg>
                   </button>
-                  <div class="px-3 py-2 bg-gray-800 rounded-lg flex items-center justify-center">
-                    <svg class="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <div class="px-3 py-2 bg-gray-800/50 rounded-lg flex items-center justify-center border border-gray-700">
+                    <svg class="w-4 h-4 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3"/>
                     </svg>
                   </div>
                   <button
                     @click="handlePan(1, 0)"
-                    class="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition"
+                    class="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all hover:scale-110 active:scale-95"
                     title="Pan Right"
                   >
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1120,7 +1133,7 @@ const HalleyFractal = {
                   <div></div>
                   <button
                     @click="handlePan(0, -1)"
-                    class="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition"
+                    class="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all hover:scale-110 active:scale-95"
                     title="Pan Down"
                   >
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1206,7 +1219,7 @@ const HalleyFractal = {
                   <option value="z·exp(z) - 1">z·exp(z) - 1</option>
                 </optgroup>
               </select>
-              <p v-if="functions[formula]" class="text-xs text-gray-500 mt-1 italic">
+              <p v-if="functions[formula]" class="text-xs text-gray-400 mt-2 leading-relaxed border-l-2 border-gray-700 pl-2">
                 {{ functions[formula].desc }}
               </p>
             </div>
@@ -1255,16 +1268,16 @@ const HalleyFractal = {
 
             <div>
               <label class="block text-sm font-medium mb-2">Aspect Ratio</label>
-              <div class="grid grid-cols-5 gap-1">
+              <div class="grid grid-cols-5 gap-2">
                 <button
                   v-for="ratio in ['1:1', '4:3', '16:9', '21:9', '9:16']"
                   :key="ratio"
                   @click="aspectRatio = ratio"
                   :class="[
-                    'px-2 py-1.5 text-xs rounded transition',
+                    'px-2 py-2 text-xs rounded-lg font-medium transition-all',
                     aspectRatio === ratio
-                      ? 'bg-gray-600 text-white'
-                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                      ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30 scale-105'
+                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white hover:scale-105'
                   ]"
                 >
                   {{ ratio }}
@@ -1311,32 +1324,49 @@ const HalleyFractal = {
             </div>
 
             <div class="pt-4 border-t border-gray-700">
-              <div class="flex items-center justify-between mb-2">
-                <h3 class="text-sm font-medium">Current View</h3>
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-medium flex items-center gap-2">
+                  <svg class="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="9" y1="3" x2="9" y2="21"/>
+                    <line x1="15" y1="3" x2="15" y2="21"/>
+                    <line x1="3" y1="9" x2="21" y2="9"/>
+                    <line x1="3" y1="15" x2="21" y2="15"/>
+                  </svg>
+                  Current View
+                </h3>
                 <button
                   @click="copyShareLink"
-                  class="flex items-center gap-1 px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 rounded transition"
+                  :class="[
+                    'flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg transition-all',
+                    showCopied
+                      ? 'bg-green-600 text-white'
+                      : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                  ]"
                   title="Copy shareable link"
                 >
-                  <svg v-if="showCopied" class="w-3 h-3 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <svg v-if="showCopied" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="20 6 9 17 4 12"/>
                   </svg>
                   <svg v-else class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
                     <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
                   </svg>
-                  <span :class="showCopied ? 'text-green-400' : ''">
-                    {{ showCopied ? 'Copied!' : 'Share' }}
-                  </span>
+                  <span>{{ showCopied ? 'Copied!' : 'Share' }}</span>
                 </button>
               </div>
-              <div class="text-xs text-gray-400 space-y-1 font-mono">
-                <p>X: [{{ bounds.minX.toFixed(6) }}, {{ bounds.maxX.toFixed(6) }}]</p>
-                <p>Y: [{{ bounds.minY.toFixed(6) }}, {{ bounds.maxY.toFixed(6) }}]</p>
+              <div class="bg-gray-800/50 rounded-lg p-3 border border-gray-700">
+                <div class="text-xs text-gray-400 space-y-1.5 font-mono">
+                  <div class="flex items-center gap-2">
+                    <span class="text-gray-500">X:</span>
+                    <span>[{{ bounds.minX.toFixed(6) }}, {{ bounds.maxX.toFixed(6) }}]</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-gray-500">Y:</span>
+                    <span>[{{ bounds.minY.toFixed(6) }}, {{ bounds.maxY.toFixed(6) }}]</span>
+                  </div>
+                </div>
               </div>
-              <p class="text-xs text-gray-500 mt-2">
-                Click Share to copy a link with your current view
-              </p>
             </div>
 
             <!-- Export Section -->
