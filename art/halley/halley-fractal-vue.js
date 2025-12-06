@@ -855,11 +855,11 @@ const HalleyFractal = {
             break;
           case '+':
           case '=':
-            handleZoom(2);
+            handleZoom(2, e.shiftKey);
             break;
           case '-':
           case '_':
-            handleZoom(0.5);
+            handleZoom(0.5, e.shiftKey);
             break;
         }
       };
@@ -869,12 +869,15 @@ const HalleyFractal = {
       return () => window.removeEventListener('keydown', handleKeyDown);
     });
 
-    const handleZoom = (factor) => {
+    const handleZoom = (baselineFactor, shiftKey = false) => {
       const { width, height } = canvasDimensions.value;
       const canvasAspect = width / height;
 
       const centerX = (bounds.minX + bounds.maxX) / 2;
       const centerY = (bounds.minY + bounds.maxY) / 2;
+
+      // Shift key for fine control: 1.2x instead of 2x
+      const factor = shiftKey ? (baselineFactor > 1 ? 1.2 : 1/1.2) : baselineFactor;
 
       const rangeX = (bounds.maxX - bounds.minX) / factor;
       const rangeY = (bounds.maxY - bounds.minY) / factor;
@@ -1055,9 +1058,9 @@ const HalleyFractal = {
             <div class="flex flex-col gap-2 mt-3">
               <div class="flex gap-2 justify-center">
                 <button
-                  @click="handleZoom(2)"
+                  @click="(e) => handleZoom(2, e.shiftKey)"
                   class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all hover:scale-105 active:scale-95"
-                  title="Zoom In"
+                  title="Zoom In (Shift for fine control)"
                 >
                   <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="11" cy="11" r="8"/>
@@ -1065,9 +1068,9 @@ const HalleyFractal = {
                   </svg>
                 </button>
                 <button
-                  @click="handleZoom(0.5)"
+                  @click="(e) => handleZoom(0.5, e.shiftKey)"
                   class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all hover:scale-105 active:scale-95"
-                  title="Zoom Out"
+                  title="Zoom Out (Shift for fine control)"
                 >
                   <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="11" cy="11" r="8"/>
