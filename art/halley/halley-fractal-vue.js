@@ -842,16 +842,16 @@ const HalleyFractal = {
 
         switch (e.key) {
           case 'ArrowUp':
-            handlePan(0, 1);
+            handlePan(0, 1, e.shiftKey);
             break;
           case 'ArrowDown':
-            handlePan(0, -1);
+            handlePan(0, -1, e.shiftKey);
             break;
           case 'ArrowLeft':
-            handlePan(-1, 0);
+            handlePan(-1, 0, e.shiftKey);
             break;
           case 'ArrowRight':
-            handlePan(1, 0);
+            handlePan(1, 0, e.shiftKey);
             break;
           case '+':
           case '=':
@@ -899,11 +899,13 @@ const HalleyFractal = {
       });
     };
 
-    const handlePan = (dx, dy) => {
+    const handlePan = (dx, dy, shiftKey = false) => {
       const rangeX = bounds.maxX - bounds.minX;
       const rangeY = bounds.maxY - bounds.minY;
-      const panX = dx * rangeX * 0.25;
-      const panY = dy * rangeY * 0.25;
+      // Shift key for fine control (5%), normal is 25%
+      const panAmount = shiftKey ? 0.05 : 0.25;
+      const panX = dx * rangeX * panAmount;
+      const panY = dy * rangeY * panAmount;
 
       Object.assign(bounds, {
         minX: bounds.minX + panX,
@@ -1003,7 +1005,7 @@ const HalleyFractal = {
           Halley Art
         </h1>
         <p class="text-gray-400 text-center mb-6 text-sm">
-          Click to zoom • Arrow keys to pan • +/- to zoom in/out
+          Click to zoom • Arrow keys to pan • +/- to zoom in/out • Shift for fine control
         </p>
 
         <div class="flex flex-col lg:flex-row gap-6">
@@ -1098,9 +1100,9 @@ const HalleyFractal = {
                 <div class="grid grid-cols-3 gap-1">
                   <div></div>
                   <button
-                    @click="handlePan(0, 1)"
+                    @click="(e) => handlePan(0, 1, e.shiftKey)"
                     class="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all hover:scale-110 active:scale-95"
-                    title="Pan Up"
+                    title="Pan Up (Shift for fine control)"
                   >
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M12 19V5M5 12l7-7 7 7"/>
@@ -1108,9 +1110,9 @@ const HalleyFractal = {
                   </button>
                   <div></div>
                   <button
-                    @click="handlePan(-1, 0)"
+                    @click="(e) => handlePan(-1, 0, e.shiftKey)"
                     class="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all hover:scale-110 active:scale-95"
-                    title="Pan Left"
+                    title="Pan Left (Shift for fine control)"
                   >
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M19 12H5M12 19l-7-7 7-7"/>
@@ -1122,9 +1124,9 @@ const HalleyFractal = {
                     </svg>
                   </div>
                   <button
-                    @click="handlePan(1, 0)"
+                    @click="(e) => handlePan(1, 0, e.shiftKey)"
                     class="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all hover:scale-110 active:scale-95"
-                    title="Pan Right"
+                    title="Pan Right (Shift for fine control)"
                   >
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M5 12h14M12 5l7 7-7 7"/>
@@ -1132,9 +1134,9 @@ const HalleyFractal = {
                   </button>
                   <div></div>
                   <button
-                    @click="handlePan(0, -1)"
+                    @click="(e) => handlePan(0, -1, e.shiftKey)"
                     class="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all hover:scale-110 active:scale-95"
-                    title="Pan Down"
+                    title="Pan Down (Shift for fine control)"
                   >
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M12 5v14M5 12l7 7 7-7"/>
