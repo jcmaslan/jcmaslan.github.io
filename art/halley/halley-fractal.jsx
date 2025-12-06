@@ -4,7 +4,7 @@ function HalleyFractal() {
   
   // Valid options for security validation
   const VALID_FORMULAS = [
-    'z³ - 1', 'z⁴ - 1', 'z⁵ - 1', 'z⁶ - 1', 'z⁷ - 1', 'z⁸ - 1',
+    'z³ - 1', 'z⁴ - 1', 'z⁵ - 1', 'z⁶ - 1', 'z⁷ - 1', 'z⁸ - 1', 'z¹² - 1',
     'z³ - 0.5', 'z⁴ - 2', 'z⁴ + z² - 1', 'z⁵ + z - 1', 'z³ - z', 'z⁵ - z²', 'z⁵ - z³', 'z⁶ + z³ - 1',
     'z³ + (0.3+0.5i)', 'z³ + (-0.2+0.8i)', 'z³ + (1+i)', 'z³ + (0.5+0.2i)', 'z⁴ + (0.2+0.4i)',
     '(z² + 1)/(z³ - 1)', '(z³ - 2)/(z - 1)',
@@ -374,6 +374,12 @@ function HalleyFractal() {
       df: (z) => cMul({ re: 8, im: 0 }, cPow(z, 7)),
       d2f: (z) => cMul({ re: 56, im: 0 }, cPow(z, 6)),
       desc: 'Eightfold symmetry; intricate radial patterns'
+    },
+    'z¹² - 1': {
+      f: (z) => cSub(cPow(z, 12), { re: 1, im: 0 }),
+      df: (z) => cMul({ re: 12, im: 0 }, cPow(z, 11)),
+      d2f: (z) => cMul({ re: 132, im: 0 }, cPow(z, 10)),
+      desc: 'Twelvefold symmetry; highly detailed radial structure'
     },
     'z³ - 0.5': {
       f: (z) => cSub(cPow(z, 3), { re: 0.5, im: 0 }),
@@ -1695,7 +1701,7 @@ function HalleyFractal() {
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm"
               >
                 <optgroup label="Classic Symmetric">
-                  {['z³ - 1', 'z⁴ - 1', 'z⁵ - 1', 'z⁶ - 1', 'z⁷ - 1', 'z⁸ - 1'].map(f => (
+                  {['z³ - 1', 'z⁴ - 1', 'z⁵ - 1', 'z⁶ - 1', 'z⁷ - 1', 'z⁸ - 1', 'z¹² - 1'].map(f => (
                     <option key={f} value={f}>{f}</option>
                   ))}
                 </optgroup>
