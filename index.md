@@ -19,5 +19,5 @@
 
 # Apps
 
-[Halley Fractal Art](./art/halley/)
+[Halley Fractal Art](https://mykindofmind.com/halley/)
 <br>[Tuner](./tuner/)
