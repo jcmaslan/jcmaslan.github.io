@@ -19,5 +19,6 @@
 
 # Apps
 
-[Halley Art](https://mathart.mykindofmind.com)
-<br>[Tuner](./tuner/)
+* [Enneagram Quick Type](https://quicktype.mykindofmind.com/)
+* [Halley Art](https://mathart.mykindofmind.com)
+* [Tuner](./tuner/)
